@@ -17,3 +17,7 @@
 
 # Ignore emacs temp files
 *~
+
+# Ignore commit message
+commit_msg
+.rvmrc
