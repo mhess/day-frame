@@ -1,4 +1,6 @@
 DayPlanner::Application.routes.draw do
+  resources :tasks
+
   devise_for :users, controllers: {registrations: "registrations"}
   get "welcome", to: "home#welcome", as: "welcome"
   # The priority is based upon order of creation: first created -> highest priority.
