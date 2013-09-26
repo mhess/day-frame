@@ -1,3 +1,55 @@
 // Place all the styles related to the home controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+.dragArea{
+    display: inline-block;
+    position: absolute;
+    vertical-align: top;
+    top: 100px;
+    left: 100px;
+}
+
+.taskList {
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    left: 300px;
+    width: 100px;
+    height: 200px;
+    margin-left: 100px;
+}
+
+.timeline {
+    display: inline-block;
+    width: 100px;
+    vertical-align: top;
+    //border: 1px solid red;
+}
+
+.task {
+    height: 30px;
+    width: 100px;
+    background-color: blue;      
+}
+
+.halfHour {
+    height: 30px;
+    width: 100px;
+    text-align: right;
+    //border-top: 1px solid black;
+}
+
+.snap {
+    height: 25%;
+    width: 100%;
+}
+
+.oddHour {
+    background-color: gray;
+}
+
+.hour {
+    position: relative;
+    height: 60px;
+    width: 100px;
+}

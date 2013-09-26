@@ -5,7 +5,12 @@ class TasksController < ApplicationController
   # GET /tasks
   # GET /tasks.json
   def index
-    @tasks = current_user.tasks
+    params.permit(:day)
+    if params[:day] then
+      @tasks = current_user.tasks.where(day: [nil, Date.parse(params[:day])])
+    else
+      @tasks = current_user.tasks
+    end
   end
 
   # GET /tasks/1
@@ -64,6 +69,21 @@ class TasksController < ApplicationController
   end
 
   private
+  
+    # Return a hash of task hashes keyed by :id
+    def format_tasks(tasks)
+      result = {}
+      tasks.each do |t|
+        # logger.info t.inspect
+        obj = {}
+        [:id, :title, :description, :duration, :start, :priority, :day].each do |i|
+          obj[i] = t[i]
+        end
+        result[t.id] = obj
+      end
+      result
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_task
       @task = current_user.tasks.find(params[:id])

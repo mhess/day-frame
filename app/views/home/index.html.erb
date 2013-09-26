@@ -1,2 +1,26 @@
-<h1>THE APP!</h1>
+<% content_for :scripts do %>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <%= javascript_include_tag "home" %>
+<% end %>
+
+<div style="text-align: right">
 <%= link_to "Log Out", destroy_user_session_path, method: :delete %>
+</div>
+<div ng-app="app">
+  <div class="dragArea" ng-controller="viewCtrl" >
+    <div class="timeline">
+      <div class="hour" ng-repeat="hour in hours" ng-class-odd="'oddHour'">
+	<div class="snap"><span>{{hour}}</span></div>
+	<div class="snap"></div>
+	<div class="snap"></div>
+	<div class="snap"></div>
+      </div>
+    </div>
+    <div class="task" ng-repeat="task in taskList | assigned:true" x-task-id="{{task.id}}"></div>
+    <div class="taskList">
+      <div class="task" ng-repeat="task in taskList | assigned:false | orderBy:'priority'" x-task-id="{{task.id}}"></div>
+    </div>
+  </div>
+</div>
