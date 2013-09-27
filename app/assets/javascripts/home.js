@@ -1,20 +1,8 @@
-var app = angular.module("app", ['ngResource']);
+//= require angularjs/rails/resource
+//= require task_services
 
+var app = angular.module("app", ['taskServices'])
 
-function time2px(time, scope) {
-  var delta = time - scope.wake;
-  return (Math.floor(delta/100)) * 60 + (delta%100);
-};
-
-function px2time(px, scope) {
-  var delta = (Math.floor(px/60))*100 + px % 60;
-  return scope.wake + delta;
-};
-
-var foo;
-// This code assumes no pre-emtped multi-threading, otherwise there will be race conditions
-
-app
   .value('hours', function(start, end){
 	   start = start/100;
 	   end = end/100;
@@ -29,62 +17,53 @@ app
   .filter('assigned', function(){
 	  return function(input, assigned) {
 	    var result = [];
-	    angular.forEach(input,
-			    function(v,k){
-			      if ( assigned ) {
-				if ( v.start != null )  result.push(v);
-			      } else {
-				if ( v.start == null )  result.push(v);
-			      }
+	    var pred = assigned ? function(s) {return s != null;} : function(s) {return s == null;};
+	    angular.forEach(input, function(i) {
+			      if ( pred(i.start) ) result.push(i);
 			    });
 	    return result;
 	  };})
 
-  .factory('Tasks', ['$resource', function($resource) {
-		       return function(scope) {
-			 function day_str() {
-			   var d = scope.today;
-			 return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
-			 }
-		       return $resource('/tasks/:id.:format',
-					{format: 'json'},
-					{query: {method:'GET',
-						 params: {day: day_str},
-						 isArray: true
-						},
-					 create:{method:'POST',
-						 params: {title: "@title",
-							  duration: "@dur",
-							  priority: "@pri"}}});
-			 };
-		     }])
-  .controller('viewCtrl', ['$scope', 'hours',
-			   function($scope, hours) {
-			     $scope.taskList = {1: {id: 1, start: null, priority: 3,
-						    duration: 90},
-						2: {id: 2, start: null, priority: 2,
-						    duration: 120, start: 900},
-						3: {id: 3, start: null, priority: 1,
-						    duration: 180}};
+  .factory('pxTime', function() {
+	     return function(scope) {
+	      this.px = function(time) {
+		var delta = time - scope.wake;
+		return (Math.floor(delta/100)) * 60 + (delta%100);		
+	      };
+	       this.time = function(px) {
+		 var delta = (Math.floor(px/60))*100 + px % 60;
+		 return scope.wake + delta;
+	       };
+	     };	     
+	   })
+
+  .controller('viewCtrl', ['$scope', 'hours', 'TaskService', 'pxTime',
+			   function($scope, hours, TaskService, pxTime) {
+			     $scope.day = new Date();
 			     $scope.wake = 700;
 			     $scope.sleep = 2300;
-			     $scope.hours = hours($scope.wake, $scope.sleep);
-			     $scope.$watch('""+start+end', function(newTimes) {
-					     $scope.snaps = hours(newTimes[0], newTimes[1]);
-					   });			     
+			     $scope.Tasks = new TaskService($scope);
+			     $scope.pxTime = new pxTime($scope);
+			     $scope.$watch('wake+""+sleep', function(newTimes) {
+					     $scope.hours = hours($scope.wake, $scope.sleep);
+					   });
 			   }])
 
   .directive('task', function() {
 	       return { restrict: 'C',
-			template: 'task {{task.id}} <span ng-show="task.start" ng-click="task.start=null">backlog</span>',
+			template: 'task {{task.id}} <span ng-show="task.start" ng-click="backlog()">backlog</span>',
 		        link: function(scope, element, attrs) {
 			  var task = scope.task;
-			  var jqEl = $(element);			  
+			  var jqEl = $(element);
+
+			  scope.backlog = function() {
+			    scope.Tasks.unassign(task.id);
+			  };
 
 			  // Assigned/unassigned specific setup
 			  if ( task.start!=null ) {
 			    jqEl.css({position: "absolute", left: 0,
-				      top: time2px(task.start, scope),				      
+				      top: scope.pxTime.px(task.start, scope),				      
 				      height: task.duration})
 			      .draggable({containment: ".timeline"});
 			  } else {
@@ -103,11 +82,8 @@ app
 				 jqEl.hide(); 
 			       }
 			     },
-			     stop: function(event, ui) {
-			       if ( task.start == null )
-				 jqEl.css("height", "");
-			       jqEl.show();
-			     }}
+			     stop: function(event, ui) { jqEl.show(); }
+			    }
 			  );
 			}
 		      };})
@@ -118,17 +94,11 @@ app
 			link: function(scope, element, attrs) {
 			  var jqEl = $(element);
 			  var top = jqEl.offset().top;
-			  console.log("timeline offset");
-			  console.log(jqEl.offset());
 			  jqEl.droppable(
 			    { drop: function (event, ui) {
-				var dragged = ui.draggable;
-				var task = scope.taskList[dragged.attr("x-task-id")];
-				scope.$apply(
-				  function() {
-				    task.start = px2time(ui.offset.top - top, scope);
-				  });
-				console.log(task.start);
+				var taskId = ui.draggable.attr("x-task-id");
+				var newTime = scope.pxTime.time(ui.offset.top - top);
+				scope.$apply('Tasks.assign('+taskId+','+newTime+')');				
 			      }}
 			  );
 			}			

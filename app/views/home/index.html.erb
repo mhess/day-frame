@@ -1,6 +1,5 @@
 <% content_for :scripts do %>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-resource.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
   <%= javascript_include_tag "home" %>
 <% end %>
@@ -18,9 +17,9 @@
 	<div class="snap"></div>
       </div>
     </div>
-    <div class="task" ng-repeat="task in taskList | assigned:true" x-task-id="{{task.id}}"></div>
+    <div class="task" ng-repeat="task in Tasks.list | assigned:true" x-task-id="{{task.id}}"></div>
     <div class="taskList">
-      <div class="task" ng-repeat="task in taskList | assigned:false | orderBy:'priority'" x-task-id="{{task.id}}"></div>
+      <div class="task" ng-repeat="task in Tasks.list | assigned:false | orderBy:'priority'" x-task-id="{{task.id}}"></div>
     </div>
   </div>
 </div>
