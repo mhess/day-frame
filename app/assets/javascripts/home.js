@@ -1,4 +1,3 @@
-//= require angularjs/rails/resource
 //= require task_services
 
 var app = angular.module("app", ['taskServices'])
@@ -28,7 +27,7 @@ var app = angular.module("app", ['taskServices'])
 	     return function(scope) {
 	      this.px = function(time) {
 		var delta = time - scope.wake;
-		return (Math.floor(delta/100)) * 60 + (delta%100);		
+		return (Math.floor(delta/100)) * 60 + (delta%100);
 	      };
 	       this.time = function(px) {
 		 var delta = (Math.floor(px/60))*100 + px % 60;
@@ -39,67 +38,119 @@ var app = angular.module("app", ['taskServices'])
 
   .controller('viewCtrl', ['$scope', 'hours', 'TaskService', 'pxTime',
 			   function($scope, hours, TaskService, pxTime) {
+			     // State for this controller
 			     $scope.day = new Date();
 			     $scope.wake = 700;
 			     $scope.sleep = 2300;
+			     $scope.modal = {active: false};
+			     
+			     // Services attached to this controller's scope
 			     $scope.Tasks = new TaskService($scope);
 			     $scope.pxTime = new pxTime($scope);
-			     $scope.$watch('wake+""+sleep', function(newTimes) {
+			     
+			     $scope.changeDay = function(change) {
+			       if ( change==null ) {
+				 $scope.day = new Date();
+			       } else { $scope.day.setDate($scope.day.getDate()+change); }
+			     };
+			     
+			     $scope.$watch('wake+""+sleep', function() {
 					     $scope.hours = hours($scope.wake, $scope.sleep);
 					   });
 			   }])
 
   .directive('task', function() {
 	       return { restrict: 'C',
-			template: 'task {{task.id}} <span ng-show="task.start" ng-click="backlog()">backlog</span>',
-		        link: function(scope, element, attrs) {
+			templateUrl: 'angular/task.html',
+			replace: true,
+		        link: function(scope, el) {
 			  var task = scope.task;
-			  var jqEl = $(element);
 
-			  scope.backlog = function() {
-			    scope.Tasks.unassign(task.id);
+			  // Set task element style according to model object
+			  // properties (start, duration)
+			  scope.getStyle = function() {
+			    if (task.start==null) return {};
+			    return {top: scope.pxTime.px(task.start),
+				    height: task.duration};
 			  };
 
-			  // Assigned/unassigned specific setup
-			  if ( task.start!=null ) {
-			    jqEl.css({position: "absolute", left: 0,
-				      top: scope.pxTime.px(task.start, scope),				      
-				      height: task.duration})
-			      .draggable({containment: ".timeline"});
+			  // Set CSS/draggable based on whether assigned or not
+			  if (task.start!=null) {
+			    el.css({position: "absolute", left:0})
+			      .draggable({containment:'.timeline'});
 			  } else {
-			    jqEl.draggable({helper: "clone",
-					    containment: "document"});
+			    el.draggable({helper: "clone", containment: "document"});
 			  }
-
-			  jqEl.draggable(
+			  
+			  // Task raggable properties
+			  el.draggable(
 			    {snap: ".snap",
 			     snapMode: "inner",
 			     snapTolerance: 25,
 			     revert: 'invalid',
+			     // Hide task element if coming from taskList
 			     start: function(event, ui) {
-			       if ( task.start == null ) {
+			       if ( task.start==null ) {
 				 ui.helper.css("height", task.duration);
-				 jqEl.hide(); 
+				 el.hide(); 
 			       }
 			     },
-			     stop: function(event, ui) { jqEl.show(); }
-			    }
-			  );
-			}
-		      };})
-
+			     stop: function(event, ui) {
+			       el.show(); }
+			    });
+			}};})
 
   .directive('timeline', function() {
 	       return { restrict: 'C',
-			link: function(scope, element, attrs) {
-			  var jqEl = $(element);
-			  var top = jqEl.offset().top;
-			  jqEl.droppable(
-			    { drop: function (event, ui) {
-				var taskId = ui.draggable.attr("x-task-id");
-				var newTime = scope.pxTime.time(ui.offset.top - top);
-				scope.$apply('Tasks.assign('+taskId+','+newTime+')');				
-			      }}
-			  );
-			}			
+			link: function(scope, el) {			
+			  el.droppable(
+			    {drop: function (event, ui) {
+			       var taskId = ui.draggable.attr("x-task-id");
+			       var offset = Math.round(ui.offset.top - el.offset().top);
+			       var mod = offset % 5;
+			       if (mod) offset = mod < 3 ? offset-mod : offset+5-mod;
+			       var newTime = scope.pxTime.time(offset);
+			       console.log(newTime);
+			       scope.$apply( function() {
+					       scope.Tasks.modify(taskId, {start: newTime});
+					     });
+			     }});
+			}	
+		      };})
+
+  .directive('taskModal', function() {
+	       return {restrict: 'C',
+		       scope: true,
+		       replace: true,
+		       templateUrl: 'angular/task_modal.html',
+		       link: function(scope, element, attrs) {
+
+			 // This is the task being operated on by the modal as well
+			 // as the flag which shows/hides the modal
+			 scope.task = null;
+
+			 // Register this directive/modal's handle on the
+			 // controller's modal object
+			 scope.modal.task = function(task) {
+			   scope.modal.active = 'task';
+			   scope.header = task==null ? "New Task" : "Edit Task";
+			   scope.task = task || {};
+			   scope.taskTmpl = {};
+			   angular.extend(scope.taskTmpl, task);
+			 };
+
+			 scope.save = function() {			  			   
+			   if ( 'id' in scope.task ) {
+			     scope.Tasks.modify(scope.task.id, scope.taskTmpl);
+			   } else {
+			     scope.Tasks.create(scope.taskTmpl);
+			   }
+			   scope.close();
+			 };
+
+			 scope.close = function() {
+			   scope.modal.active=null;
+			   scope.task=null;
+			 };
+		       }
 		      };});

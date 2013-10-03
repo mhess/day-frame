@@ -1,0 +1,10 @@
+<div ng-show="task">
+  <h3>{{header}}</h3>
+  Title: <input ng-model="taskTmpl.title"><br/>
+  Duration (min): <input type="number" ng-model="taskTmpl.duration"><br/>
+  Start Time (24hr): <input type="number" ng-model="taskTmpl.start"><br/>
+  Priority (1-4): <input ng-model="taskTmpl.priority"><br/>
+  Description: <textarea ng-model="taskTmpl.description"></textarea><br/>
+  <input type="button" value="Save" ng-click="save()">
+  <input type="button" value="Cancel" ng-click="close()">
+</div>
