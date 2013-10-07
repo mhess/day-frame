@@ -3,6 +3,14 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 $task-width: 200px;
+$color-pri-1: #FCBFBD;
+$color-pri-2: #F6FCBD;
+$color-pri-3: #BDF1FC;
+$color-pri-4: #D3E6DC;
+
+a {
+  color: blue;
+}
 
 .dragArea{
   display: inline-block;
@@ -19,6 +27,7 @@ $task-width: 200px;
   width: $task-width;
   height: 200px;
   margin-left: 100px;
+  background-color: gray;
 }
 
 .timeline {
@@ -30,13 +39,14 @@ $task-width: 200px;
 
 .task {
   position: relative;
+  padding: 3px;
   height: 60px;
   width: $task-width;
-  border: 1px solid black;
   border-radius: 5px;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   
-  .display-info {
-    padding: 2px;
+  .title {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;       
@@ -44,11 +54,23 @@ $task-width: 200px;
   
   .control {
     width: 100%;
-    position: absolute;
     text-align: right;
-    padding-right: 2px;
     bottom: 0px;
   }
+
+  &.pri-1 {
+    background-color: $color-pri-1;
+  }
+  &.pri-2 {
+    background-color: $color-pri-2;
+  }
+  &.pri-3 {
+    background-color: $color-pri-3;
+  }
+  &.pri-4 {
+    background-color: $color-pri-4;
+  }
+  
 }
 
 .my-modal {

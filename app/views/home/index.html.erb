@@ -8,14 +8,14 @@
 </div>
 <div ng-app="app" ng-controller="viewCtrl" >
   <div>
-    <a href="#" ng-click="changeDay(-1)">back</a>
+    <a ng-click="changeDay(-1)">back</a>
     {{day | date:"longDate"}}
-    <a href="#" ng-click="changeDay(1)">forward</a>
-    | <a href="#" ng-click="changeDay()">today</a></div>
+    <a ng-click="changeDay(1)">forward</a>
+    | <a ng-click="changeDay()">today</a></div>
   <div class="dragArea">
     <div class="timeline">
       <div class="hour" ng-repeat="hour in hours" ng-class-odd="'oddHour'">
-	<div class="snap"><span style="position: relative; left: -40px;">{{hour}}</span></div>
+	<div class="snap">{{hour}}</div>
 	<div class="snap"></div>
 	<div class="snap"></div>
 	<div class="snap"></div>
@@ -23,7 +23,7 @@
     </div>
     <div class="task" ng-repeat="task in Tasks.list | assigned:true"></div>
     <div class="taskList">
-      <a href="#" ng-click="modal.task()">New Task</a>
+      <a ng-click="modal.task()">Add Task</a>
       <div class="task" ng-repeat="task in Tasks.list | assigned:false | orderBy:'priority'"></div>
     </div>
   </div>

@@ -1,34 +1,24 @@
 //= require task_services
+//= require util
 
-var app = angular.module("app", ['taskServices'])
-
-  .value('hours', function(start, end){
-	   start = start/100;
-	   end = end/100;
-	   var hrs = [];
-	   var count = (end-start);
-	   for ( var hr=start; hr < end; hr++ ) {
-	     hrs.push((hr<12.5) ? hr+"am" : (hr-12)+"pm");
-	   }
-	   return hrs;
-	 })
+var app = angular.module("app", ['taskServices', 'util'])
 
   .filter('assigned', function(){
-	  return function(input, assigned) {
-	    var result = [];
-	    var pred = assigned ? function(s) {return s != null;} : function(s) {return s == null;};
-	    angular.forEach(input, function(i) {
-			      if ( pred(i.start) ) result.push(i);
-			    });
-	    return result;
-	  };})
+	    return function(input, assigned) {
+	      var result = [];
+	      var pred = assigned ? function(s) {return s != null;} : function(s) {return s == null;};
+	      angular.forEach(input, function(i) {
+				if ( pred(i.start) ) result.push(i);
+			      });
+	      return result;
+	    };})
 
   .factory('pxTime', function() {
 	     return function(scope) {
-	      this.px = function(time) {
-		var delta = time - scope.wake;
-		return (Math.floor(delta/100)) * 60 + (delta%100);
-	      };
+	       this.px = function(time) {
+		 var delta = time - scope.wake;
+		 return (Math.floor(delta/100)) * 60 + (delta%100);
+	       };
 	       this.time = function(px) {
 		 var delta = (Math.floor(px/60))*100 + px % 60;
 		 return scope.wake + delta;
@@ -36,8 +26,8 @@ var app = angular.module("app", ['taskServices'])
 	     };	     
 	   })
 
-  .controller('viewCtrl', ['$scope', 'hours', 'TaskService', 'pxTime',
-			   function($scope, hours, TaskService, pxTime) {
+  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'pxTime',
+			   function($scope, TaskService, hoursArray, pxTime) {
 			     // State for this controller
 			     $scope.day = new Date();
 			     $scope.wake = 700;
@@ -55,50 +45,57 @@ var app = angular.module("app", ['taskServices'])
 			     };
 			     
 			     $scope.$watch('wake+""+sleep', function() {
-					     $scope.hours = hours($scope.wake, $scope.sleep);
+					     $scope.hours = hoursArray($scope.wake, $scope.sleep);
 					   });
 			   }])
 
-  .directive('task', function() {
-	       return { restrict: 'C',
-			templateUrl: 'angular/task.html',
-			replace: true,
-		        link: function(scope, el) {
-			  var task = scope.task;
+  .directive('task', ['formatTime', 'addMinutes', '$window',
+		      function(formatTime, addMinutes, $window) {
+			return { restrict: 'C',
+				 templateUrl: 'angular/task.html',
+				 replace: true,
+				 link: function(scope, el) {
+				   var task = scope.task;
+				   angular.extend(scope, {formatTime:formatTime, addMinutes:addMinutes});
 
-			  // Set task element style according to model object
-			  // properties (start, duration)
-			  scope.getStyle = function() {
-			    if (task.start==null) return {};
-			    return {top: scope.pxTime.px(task.start),
-				    height: task.duration};
-			  };
+				   // Set task element style according to model object
+				   // properties (start, duration)
+				   scope.getStyle = function() {
+				     if (task.start==null) return {};
+				     return {top: scope.pxTime.px(task.start),
+					     height: task.duration};
+				   };
+				   
+				   scope.deleteTask = function() {
+				     if ($window.confirm("Are you sure you want to delete this task?")){
+				       scope.Tasks.delete(task.id);
+				     }
+				   };
 
-			  // Set CSS/draggable based on whether assigned or not
-			  if (task.start!=null) {
-			    el.css({position: "absolute", left:0})
-			      .draggable({containment:'.timeline'});
-			  } else {
-			    el.draggable({helper: "clone", containment: "document"});
-			  }
-			  
-			  // Task raggable properties
-			  el.draggable(
-			    {snap: ".snap",
-			     snapMode: "inner",
-			     snapTolerance: 25,
-			     revert: 'invalid',
-			     // Hide task element if coming from taskList
-			     start: function(event, ui) {
-			       if ( task.start==null ) {
-				 ui.helper.css("height", task.duration);
-				 el.hide(); 
-			       }
-			     },
-			     stop: function(event, ui) {
-			       el.show(); }
-			    });
-			}};})
+				   // Set CSS/draggable based on whether assigned or not
+				   if (task.start!=null) {
+				     el.css({position: "absolute", left:0})
+				       .draggable({containment:'.timeline'});
+				   } else {
+				     el.draggable({helper: "clone", containment: "document"});
+				   }
+				   
+				   el.draggable(
+				     {snap: ".snap",
+				      snapMode: "inner",
+				      snapTolerance: 25,
+				      revert: 'invalid',
+				      // Hide original task element if coming from taskList
+				      start: function(event, ui) {
+					if ( task.start==null ) {
+					  ui.helper.css("height", task.duration);
+					  el.hide(); 
+					}
+				      },
+				      stop: function(event, ui) {
+					el.show(); }
+				     });
+				 }};}])
 
   .directive('timeline', function() {
 	       return { restrict: 'C',
