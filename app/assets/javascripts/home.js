@@ -1,3 +1,6 @@
+//= require angular
+//= require jquery.ui.draggable
+//= require jquery.ui.droppable
 //= require task_services
 //= require util
 
