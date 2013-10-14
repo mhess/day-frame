@@ -1,7 +1,7 @@
 <div x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="'pri-'+task.priority">
   <div class="display-info">
     <div class="title">{{task.title}}</div>
-    <div ng-show="task.start">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div>
+    <div ng-show="task.start && !drag">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div>
   </div>
   <div class="control"> 
     <a ng-show="task.start" ng-click="Tasks.modify(task.id, {start: null})">back</a>

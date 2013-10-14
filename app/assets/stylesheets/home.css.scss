@@ -7,7 +7,8 @@ $color-pri-1: #FCBFBD;
 $color-pri-2: #F6FCBD;
 $color-pri-3: #BDF1FC;
 $color-pri-4: #D3E6DC;
-
+$hour-height: 60px;
+  
 a {
   color: blue;
 }
@@ -40,11 +41,12 @@ a {
 .task {
   position: relative;
   padding: 3px;
-  height: 60px;
+  height: $hour-height / 2;
   width: $task-width;
   border-radius: 5px;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  border: 1px solid black;
   
   .title {
     text-overflow: ellipsis;
@@ -94,7 +96,7 @@ a {
 }
 
 .snap {
-  height: 25%;
+  height: $hour-height / 4;
   width: 100%;
 }
 
@@ -104,5 +106,11 @@ a {
 
 .hour {
   position: relative;
-  height: 60px;
+  height: $hour-height;
+}
+
+#helper-time {
+  position: absolute;
+  left: $task-width + 10px;
+  top: 0px;
 }

@@ -1,6 +1,8 @@
 //= require task_services
 //= require util
 
+var helperTime = $('<div/>').attr('id', 'helper-time');
+
 var app = angular.module("app", ['taskServices', 'util'])
 
   .filter('assigned', function(){
@@ -55,6 +57,8 @@ var app = angular.module("app", ['taskServices', 'util'])
 				 templateUrl: 'angular/task.html',
 				 replace: true,
 				 link: function(scope, el) {
+				   var timelineEl = $('.timeline');
+				   scope.drag = false;
 				   var task = scope.task;
 				   angular.extend(scope, {formatTime:formatTime, addMinutes:addMinutes});
 
@@ -89,11 +93,29 @@ var app = angular.module("app", ['taskServices', 'util'])
 				      start: function(event, ui) {
 					if ( task.start==null ) {
 					  ui.helper.css("height", task.duration);
-					  el.hide(); 
+					  el.hide();
 					}
+					helperTime.appendTo(ui.helper);
+					scope.$apply('drag=true');
 				      },
 				      stop: function(event, ui) {
-					el.show(); }
+					helperTime.detach();
+					scope.$apply('drag=false');
+					el.show();
+				      },
+				      drag: function(e, ui) {
+				      	var dLeft = ui.offset.left;
+				      	var tLeft = timelineEl.offset().left;
+				      	if ( Math.abs(dLeft-tLeft) <= 25 ) {
+				      	  var offset = Math.round(ui.helper.offset().top - timelineEl.offset().top);
+				      	  var mod = offset % 15;
+				      	  if ( mod ) offset = mod < 8 ? offset-mod : offset+15-mod;
+				      	  helperTime.html(formatTime(scope.pxTime.time(offset)));
+				      	} else {
+					  helperTime.html('');
+					}
+				      	return true;
+				      }
 				     });
 				 }};}])
 
@@ -107,10 +129,9 @@ var app = angular.module("app", ['taskServices', 'util'])
 			       var mod = offset % 5;
 			       if (mod) offset = mod < 3 ? offset-mod : offset+5-mod;
 			       var newTime = scope.pxTime.time(offset);
-			       console.log(newTime);
-			       scope.$apply( function() {
-					       scope.Tasks.modify(taskId, {start: newTime});
-					     });
+			       scope.$apply(
+				 function() {scope.Tasks.modify(taskId, {start: newTime});}
+			       );
 			     }});
 			}	
 		      };})
