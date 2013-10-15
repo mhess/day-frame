@@ -1,11 +1,11 @@
-<div x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="'pri-'+task.priority">
+<div class="task" x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="'pri-'+task.priority">
   <div class="display-info">
     <div class="title">{{task.title}}</div>
     <div ng-show="task.start && !drag">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div>
   </div>
   <div class="control"> 
-    <a ng-show="task.start" ng-click="Tasks.modify(task.id, {start: null})">back</a>
-    <a ng-click="modal.task(task)">edit</a>
-    <a ng-click="deleteTask()">delete</a>
+    <span class="glyphicon glyphicon-pencil" title="Edit Task" ng-click="modal.task(task)"></span>
+    <span class="glyphicon glyphicon-remove" title="Delete Task" ng-click="deleteTask(task.id)"></span>
+    <span class="glyphicon glyphicon-share-alt" title="Put in backlog" ng-show="task.start" ng-click="Tasks.modify(task.id, {start: null})"></span>
   </div>
 </div>

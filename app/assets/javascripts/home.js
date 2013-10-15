@@ -1,4 +1,5 @@
 //= require angular
+//= require angular-ui-bootstrap
 //= require jquery.ui.draggable
 //= require jquery.ui.droppable
 //= require task_services
@@ -56,7 +57,7 @@ var app = angular.module("app", ['taskServices', 'util'])
 
   .directive('task', ['formatTime', 'addMinutes', '$window',
 		      function(formatTime, addMinutes, $window) {
-			return { restrict: 'C',
+			return { restrict: 'E',
 				 templateUrl: 'angular/task.html',
 				 replace: true,
 				 link: function(scope, el) {

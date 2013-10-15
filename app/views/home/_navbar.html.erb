@@ -1,0 +1,12 @@
+<nav class="navbar navbar-default">
+  <div class="navbar-header"><span class="navbar-brand">DayPlanner</span></div>
+    <p class="navbar-text">
+      <span class="glyphicon glyphicon-chevron-left" ng-click="changeDay(-1)"></span>
+      {{day | date:"longDate"}}
+      <span class="glyphicon glyphicon-chevron-right" ng-click="changeDay(1)"></span>
+      <span class="" ng-click="changeDay()">today</span>
+    </p>
+  <div class="navbar-right">
+    <%= link_to "Log Out", destroy_user_session_path, method: :delete, class: "btn btn-info navbar-btn"%>
+  </div>
+</nav>

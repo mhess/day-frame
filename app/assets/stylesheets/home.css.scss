@@ -1,76 +1,96 @@
 @import "compass/css3";
 @import "bootstrap";
 
-$task-width: 200px;
+$task-width: 400px;
 $color-pri-1: #FCBFBD;
 $color-pri-2: #F6FCBD;
 $color-pri-3: #BDF1FC;
 $color-pri-4: #D3E6DC;
 $hour-height: 60px;
+$list-padding: 15px;
+
+.navbar {
+  padding: 0px 10px;
+  margin: 10px 0px;
   
-a {
-  color: blue;
+  .navbar-text {
+    font-size: 16px;
+    vertical-align: middle;
+    
+    span[ng-click] {
+      cursor: pointer;
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+  }
 }
 
-.dragArea{
-  display: inline-block;
-  position: absolute;
-  top: 120px;
-  left: 100px;
+.left {
+  width: 50%;
 }
 
-.taskList {
-  display: inline-block;
+.right {
+  padding-right: 10px;
   position: fixed;
-  top: 50%;
-  left: 300px;
-  width: $task-width;
-  height: 200px;
-  margin-left: 100px;
-  background-color: gray;
+  right: 10px;
+  top: 0px;
+}
+
+.task-list {
+  display: inline-block;
+  
+  .panel-body {
+    padding: 10px;
+  }
+  .panel-heading {
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 18px;
+
+    .btn{
+      padding: 4px 8px;
+      float: right;
+    }
+  }
 }
 
 .timeline {
+  margin: 50px 0px 50px 50px;
   position: relative;
-  display: inline-block;
+  display: block;
   width: $task-width;
-  vertical-align: top;
 }
 
 .task {
   position: relative;
-  padding: 3px;
-  height: $hour-height / 2;
+  padding: 3px 8px;
   width: $task-width;
   @include box-sizing(border-box);
+  @include single-box-shadow($inset: true);
   border-radius: 5px;
-  border: 1px solid black;
   
   .title {
+    display: block;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;       
   }
   
   .control {
-    width: 100%;
     text-align: right;
-    bottom: 0px;
+    span {cursor: pointer;}
   }
 
-  &.pri-1 {
-    background-color: $color-pri-1;
+  &.pri-1 {background-color: $color-pri-1;}
+  &.pri-2 {background-color: $color-pri-2;}
+  &.pri-3 {background-color: $color-pri-3;}
+  &.pri-4 {background-color: $color-pri-4;}
+
+  .task-list & {    
+    &:not(:last-child) {
+      margin-bottom: 5px;
+    }
   }
-  &.pri-2 {
-    background-color: $color-pri-2;
-  }
-  &.pri-3 {
-    background-color: $color-pri-3;
-  }
-  &.pri-4 {
-    background-color: $color-pri-4;
-  }
-  
 }
 
 .my-modal {
@@ -103,6 +123,7 @@ a {
 }
 
 .hour {
+  border-top: 1px solid gray;
   position: relative;
   height: $hour-height;
 }
