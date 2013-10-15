@@ -54,7 +54,8 @@ angular.module('taskServices', ['rails', 'util'])
 		};
 
 		this.create = function(taskProps) {
-		  var task = new Task(angular.extend(taskProps, {day: day}));
+		  if ("start" in taskProps ) taskProps.day = day;
+		  var task = new Task(angular.extend(taskProps));
 		  task.create()
 		    .then(function() { taskSrvObj.add(task); },
 			  function() { alert("Task creation failed"); });
