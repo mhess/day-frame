@@ -60,7 +60,7 @@ var app = angular.module("app", ['taskServices', 'util'])
 				 templateUrl: 'angular/task.html',
 				 replace: true,
 				 link: function(scope, el) {
-				   var timelineEl = $('.timeline');
+				   var timeDroppable = $('.time-droppable');
 				   scope.drag = false;
 				   var task = scope.task;
 				   angular.extend(scope, {formatTime:formatTime, addMinutes:addMinutes});
@@ -100,7 +100,7 @@ var app = angular.module("app", ['taskServices', 'util'])
 
 				   // Set CSS/draggable based on whether assigned or not
 				   if (task.start!=null) {
-				     el.draggable({containment:'.timeline'});
+				     el.draggable({containment:'.time-droppable'});
 				   } else {
 				     el.draggable(
 				       {containment: "document",
@@ -135,9 +135,9 @@ var app = angular.module("app", ['taskServices', 'util'])
 				      },
 				      drag: function(e, ui) {
 				      	var dLeft = ui.offset.left;
-				      	var tLeft = timelineEl.offset().left;
+				      	var tLeft = timeDroppable.offset().left;
 				      	if ( Math.abs(dLeft-tLeft) <= 25 ) {
-				      	  var offset = Math.round(ui.helper.offset().top - timelineEl.offset().top);
+				      	  var offset = Math.round(ui.helper.offset().top - timeDroppable.offset().top);
 				      	  var mod = offset % 15;
 				      	  if ( mod ) offset = mod < 8 ? offset-mod : offset+15-mod;
 				      	  helperTime.html(formatTime(scope.pxTime.time(offset)));
@@ -149,7 +149,7 @@ var app = angular.module("app", ['taskServices', 'util'])
 				     });
 				 }};}])
 
-  .directive('timeline', function() {
+  .directive('timeDroppable', function() {
 	       return { restrict: 'C',
 			link: function(scope, el) {			
 			  el.droppable(

@@ -14,9 +14,73 @@ body { line-height: initial; }
 
 [ng-click] { cursor: pointer; }
 
+
+// Left side: Timeline, etc.
+
+.left {
+  position: relative;
+  display: inline-block;
+  
+}
+
+.timeline {
+  margin: 50px;
+}
+
+.time-label {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  border-right: 1px solid gray;
+  vertical-align: text-top;
+}
+
+.time-droppable {
+  position: relative;
+  display: inline-block;
+  width: $task-width;
+  vertical-align: text-top;
+}
+
+.hour {
+  border-bottom: 1px solid gray;
+  position: relative;
+  height: $hour-height;
+  text-align: right;
+
+  .time-label & {
+    padding-right: 5px;
+  }
+
+  &:first-child {
+    border-top: 1px solid gray;
+  }
+}
+
+.snap {
+  &:not(:first-child) {
+    border-top: 1px solid lighten(gray, 40%);
+  }
+  height: $hour-height / 4;
+  width: 100%;
+}
+
+.oddHour {
+  background-color: gray;
+}
+
+
+// User Control Panel //
+
+.user-panel {
+  padding: 10px;
+  position: fixed;
+  right: 0px;
+  top: 0px;
+}
+
 .navbar {
   padding: 0px 10px;
-  margin: 10px 0px;
   
   .navbar-text {
     font-size: 16px;
@@ -27,17 +91,6 @@ body { line-height: initial; }
       margin-right: 10px;
     }
   }
-}
-
-.left {
-  width: 50%;
-}
-
-.right {
-  padding-right: 10px;
-  position: fixed;
-  right: 10px;
-  top: 0px;
 }
 
 .task-list {
@@ -57,13 +110,6 @@ body { line-height: initial; }
       float: right;
     }
   }
-}
-
-.timeline {
-  margin: 50px 0px 50px 50px;
-  position: relative;
-  display: block;
-  width: $task-width;
 }
 
 .task {
@@ -128,6 +174,16 @@ body { line-height: initial; }
   }
 }
 
+#helper-time {
+  position: absolute;
+  font-size: 14px;
+  left: $task-width + 10px;
+  top: 0px;
+}
+
+
+// Modals
+
 .my-modal {
   position: fixed;
   top: 100px;
@@ -146,26 +202,4 @@ body { line-height: initial; }
   width: 100%;
   background-color: black;
   opacity: 0.7;    
-}
-
-.snap {
-  height: $hour-height / 4;
-  width: 100%;
-}
-
-.oddHour {
-  background-color: gray;
-}
-
-.hour {
-  border-top: 1px solid gray;
-  position: relative;
-  height: $hour-height;
-}
-
-#helper-time {
-  position: absolute;
-  font-size: 14px;
-  left: $task-width + 10px;
-  top: 0px;
 }
