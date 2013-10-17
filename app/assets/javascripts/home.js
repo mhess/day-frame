@@ -1,5 +1,4 @@
 //= require angular
-//= require angular-ui-bootstrap
 //= require jquery.ui.draggable
 //= require jquery.ui.droppable
 //= require task_services
@@ -55,8 +54,8 @@ var app = angular.module("app", ['taskServices', 'util'])
 					   });
 			   }])
 
-  .directive('task', ['formatTime', 'addMinutes', '$window',
-		      function(formatTime, addMinutes, $window) {
+  .directive('task', ['formatTime', 'addMinutes', '$compile',
+		      function(formatTime, addMinutes, $compile) {
 			return { restrict: 'E',
 				 templateUrl: 'angular/task.html',
 				 replace: true,
@@ -69,23 +68,51 @@ var app = angular.module("app", ['taskServices', 'util'])
 				   // Set task element style according to model object
 				   // properties (start, duration)
 				   scope.getStyle = function() {
-				     if (task.start==null) return {};
-				     return {top: scope.pxTime.px(task.start),
-					     height: task.duration};
+				     var styles = {};
+				     if (scope.drag || task.start !== null) {
+				       styles.height = task.duration;
+				       if ( task.start !== null )
+					 angular.extend(styles,
+							{position: 'absolute',
+							 top: scope.pxTime.px(task.start),
+							 left: 0, height: task.duration});
+				       if ( styles.height < ( 8 + 14 ) ) {
+					 styles.fontSize = styles.height - 8;
+				       }
+				     }
+				     return styles;
+				   };
+				   
+				   scope.getClass = function (){
+				     var val = 'pri-'+task.priority,
+				       height = el.height();
+				     if ( height < (6+28) ) {
+				       val += ' single-line';
+				     }
+				     return val;
 				   };
 				   
 				   scope.deleteTask = function() {
-				     if ($window.confirm("Are you sure you want to delete this task?")){
+				     if (window.confirm("Are you sure you want to delete this task?")){
 				       scope.Tasks.delete(task.id);
 				     }
 				   };
 
 				   // Set CSS/draggable based on whether assigned or not
 				   if (task.start!=null) {
-				     el.css({position: "absolute", left:0})
-				       .draggable({containment:'.timeline'});
+				     el.draggable({containment:'.timeline'});
 				   } else {
-				     el.draggable({helper: "clone", containment: "document"});
+				     el.draggable(
+				       {containment: "document",
+					helper: function() {					  
+					  var clone = $(this).clone().removeAttr('ng-repeat');
+					  scope.$apply(
+					    function(){
+					      scope.drag = true;
+					      $compile(clone)(scope);}
+					  );
+					  return clone;}
+				       });
 				   }
 				   
 				   el.draggable(
@@ -93,19 +120,18 @@ var app = angular.module("app", ['taskServices', 'util'])
 				      snapMode: "inner",
 				      snapTolerance: 25,
 				      revert: 'invalid',
-				      // Hide original task element if coming from taskList
 				      start: function(event, ui) {
-					if ( task.start==null ) {
-					  ui.helper.css("height", task.duration);
-					  el.hide();
-					}
+					if ( task.start===null ) el.hide();					
 					helperTime.appendTo(ui.helper);
 					scope.$apply('drag=true');
 				      },
 				      stop: function(event, ui) {
-					helperTime.detach();
+					if (task.start===null) {
+					  ui.helper.remove();
+					  el.show();					  
+					}					
+					helperTime.detach();					
 					scope.$apply('drag=false');
-					el.show();
 				      },
 				      drag: function(e, ui) {
 				      	var dLeft = ui.offset.left;

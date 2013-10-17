@@ -9,6 +9,11 @@ $color-pri-4: #D3E6DC;
 $hour-height: 60px;
 $list-padding: 15px;
 
+/* Undo bootstrap styling */
+body { line-height: initial; }
+
+[ng-click] { cursor: pointer; }
+
 .navbar {
   padding: 0px 10px;
   margin: 10px 0px;
@@ -17,8 +22,7 @@ $list-padding: 15px;
     font-size: 16px;
     vertical-align: middle;
     
-    span[ng-click] {
-      cursor: pointer;
+    span {
       margin-left: 10px;
       margin-right: 10px;
     }
@@ -41,6 +45,7 @@ $list-padding: 15px;
   
   .panel-body {
     padding: 10px;
+    width: $task-width + 20px;
   }
   .panel-heading {
     padding: 5px 10px;
@@ -65,22 +70,52 @@ $list-padding: 15px;
   position: relative;
   padding: 3px 8px;
   width: $task-width;
+  height: 60px;
   @include box-sizing(border-box);
   @include single-box-shadow($inset: true);
   border-radius: 5px;
   
-  .title {
-    display: block;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;       
-  }
-  
-  .control {
-    text-align: right;
-    span {cursor: pointer;}
+  &.single-line {
+    white-space: nowrap;
+    div {
+      overflow: hidden;
+      display: inline-block;
+    }
+    .title {
+      width: 50%;
+    }
+    .interval{
+      position: relative;
+      top: 0px;
+      right: 0px;
+    }
   }
 
+  div {
+    overflow: hidden;
+    position: relative;
+  }
+    
+  .title {
+    font-weight: bold;
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;       
+  }
+    
+  .interval {
+    display: inline-block;
+    position: absolute;
+    right: 3px;
+    top: 3px;
+  }
+    
+  .control {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+  }
+  
   &.pri-1 {background-color: $color-pri-1;}
   &.pri-2 {background-color: $color-pri-2;}
   &.pri-3 {background-color: $color-pri-3;}
@@ -130,6 +165,7 @@ $list-padding: 15px;
 
 #helper-time {
   position: absolute;
+  font-size: 14px;
   left: $task-width + 10px;
   top: 0px;
 }
