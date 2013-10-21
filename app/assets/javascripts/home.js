@@ -1,8 +1,10 @@
 //= require angular
 //= require jquery.ui.draggable
 //= require jquery.ui.droppable
-//= require task_services
+//= require jquery.ui.resizable
 //= require util
+//= require task_services
+
 
 var helperTime = $('<div/>').attr('id', 'helper-time');
 
@@ -18,30 +20,16 @@ var app = angular.module("app", ['taskServices', 'util'])
               return result;
             };})
 
-  .factory('pxTime', function() {
-             return function(scope) {
-               this.px = function(time) {
-                 var delta = time - scope.wake;
-                 return (Math.floor(delta/100)) * 60 + (delta%100);
-               };
-               this.time = function(px) {
-                 var delta = (Math.floor(px/60))*100 + px % 60;
-                 return scope.wake + delta;
-               };
-             };             
-           })
-
-  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'pxTime',
-                           function($scope, TaskService, hoursArray, pxTime) {
+  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time',
+                           function($scope, TaskService, hoursArray, Time) {
                              // State for this controller
                              $scope.day = new Date();
-                             $scope.wake = 700;
-                             $scope.sleep = 2300;
+                             $scope.wake = 420;   // 7am
+                             $scope.sleep = 1380; // 10pm
                              $scope.modal = {active: false};
                              
                              // Services attached to this controller's scope
                              $scope.Tasks = new TaskService($scope);
-                             $scope.pxTime = new pxTime($scope);
                              
                              $scope.changeDay = function(change) {
                                if ( change==null ) {
@@ -54,8 +42,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                                            });
                            }])
 
-  .directive('task', ['formatTime', 'addMinutes', '$compile',
-                      function(formatTime, addMinutes, $compile) {
+  .directive('task', ['$compile',
+                      function($compile) {
                         return { restrict: 'E',
                                  templateUrl: 'angular/task.html',
                                  replace: true,
@@ -63,8 +51,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                    var timeDroppable = $('.time-droppable');
                                    scope.drag = false;
                                    var task = scope.task;
-                                   angular.extend(scope, {formatTime:formatTime, addMinutes:addMinutes});
-				   
+                                   
                                    // Set task element style according to model object
                                    // properties (start, duration)
                                    scope.getStyle = function() {
@@ -74,7 +61,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                        if ( task.start !== null )
                                          angular.extend(styles,
                                                         {position: 'absolute',
-                                                         top: scope.pxTime.px(task.start),
+                                                         top: task.start.toOffset(scope.wake),
                                                          left: 0, height: task.duration});
                                        if ( styles.height < ( 8 + 14 ) ) {
                                          styles.fontSize = styles.height - 8;
@@ -101,6 +88,21 @@ var app = angular.module("app", ['taskServices', 'util'])
                                    // Set CSS/draggable based on whether assigned or not
                                    if (task.start!=null) {
                                      el.draggable({containment:'.time-droppable'});
+                                     el.resizable({handles: 's', grid: [0, 5],
+                                                   containment:'parent',
+                                                   resize: function(e,ui){
+                                                     // update time
+                                                   },
+                                                   stop: function(e,ui){
+                                                     var height = ui.size.height,
+                                                       mod = height % 5;
+                                                     height = mod < 3 ? height-mod : height+5-mod;
+                                                     scope.$apply(
+                                                       function() {
+                                                         scope.Tasks.modify(task.id, {duration: height});          
+                                                       });
+                                                   }
+                                                  });
                                    } else {
                                      el.draggable(
                                        {containment: "document",
@@ -132,20 +134,20 @@ var app = angular.module("app", ['taskServices', 'util'])
                                         }                                        
                                         helperTime.detach();                
                                         scope.$apply('drag=false');
-                                      },
-                                      drag: function(e, ui) {
-                                              var dLeft = ui.offset.left;
-                                              var tLeft = timeDroppable.offset().left;
-                                              if ( Math.abs(dLeft-tLeft) <= 25 ) {
-                                                var offset = Math.round(ui.helper.offset().top - timeDroppable.offset().top);
-                                                var mod = offset % 15;
-                                                if ( mod ) offset = mod < 8 ? offset-mod : offset+15-mod;
-                                                helperTime.html(formatTime(scope.pxTime.time(offset)));
-                                              } else {
-                                          helperTime.html('');
-                                        }
-                                              return true;
-                                      }
+                                      } //,
+                                      // drag: function(e, ui) {
+                                      //         var dLeft = ui.offset.left;
+                                      //         var tLeft = timeDroppable.offset().left;
+                                      //         if ( Math.abs(dLeft-tLeft) <= 25 ) {
+                                      //           var offset = Math.round(ui.helper.offset().top - timeDroppable.offset().top);
+                                      //           var mod = offset % 15;
+                                      //           if ( mod ) offset = mod < 8 ? offset-mod : offset+15-mod;
+                                      //           helperTime.html(formatTime(scope.pxTime.time(offset)));
+                                      //         } else {
+                                      //     helperTime.html('');
+                                      //   }
+                                      //         return true;
+                                      // }
                                      });
                                  }};}])
 
@@ -158,9 +160,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                                var offset = Math.round(ui.offset.top - el.offset().top);
                                var mod = offset % 5;
                                if (mod) offset = mod < 3 ? offset-mod : offset+5-mod;
-                               var newTime = scope.pxTime.time(offset);
                                scope.$apply(
-                                 function() {scope.Tasks.modify(taskId, {start: newTime});}
+                                 function() {scope.Tasks.assign(taskId, offset);}
                                );
                              }});
                         }        
@@ -184,10 +185,13 @@ var app = angular.module("app", ['taskServices', 'util'])
                            scope.header = task==null ? "New Task" : "Edit Task";
                            scope.task = task || {};
                            scope.taskTmpl = {};
-                           angular.extend(scope.taskTmpl, task);
+                           angular.extend(scope.taskTmpl, scope.task);
                          };
 
-                         scope.save = function() {                                                     
+                         scope.save = function() {
+                           if ( 'start' in scope.taskTmpl ) {
+                             delete scope.taskTmpl.start;
+                           }
                            if ( 'id' in scope.task ) {
                              scope.Tasks.modify(scope.task.id, scope.taskTmpl);
                            } else {

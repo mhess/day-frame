@@ -1,7 +1,8 @@
 <div class="task" x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="getClass()">
   <div class="title">{{task.title}}</div>
-  <div class="interval" ng-show="task.start && !drag">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div>
+  <!-- <div class="interval" ng-show="task.start && !drag">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div> -->
   <div class="control">
+    <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" ng-show="task.start && !drag"></span>
     <span class="glyphicon glyphicon-pencil" title="Edit Task" ng-click="modal.task(task)"></span>
     <span class="glyphicon glyphicon-remove" title="Delete Task" ng-click="deleteTask(task.id)"></span>
     <span class="glyphicon glyphicon-share-alt" title="Put in backlog" ng-show="task.start" ng-click="Tasks.modify(task.id, {start: null})"></span>
