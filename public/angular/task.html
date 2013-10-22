@@ -1,6 +1,6 @@
 <div class="task" x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="getClass()">
   <div class="title">{{task.title}}</div>
-  <!-- <div class="interval" ng-show="task.start && !drag">{{formatTime(task.start)+" - "+formatTime(addMinutes(task.start, task.duration))}}</div> -->
+  <div class="interval" ng-bind="range()"></div>
   <div class="control">
     <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" ng-show="task.start && !drag"></span>
     <span class="glyphicon glyphicon-pencil" title="Edit Task" ng-click="modal.task(task)"></span>

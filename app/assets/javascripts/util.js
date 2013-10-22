@@ -23,7 +23,6 @@ Time.prototype.toOffset = function(wake){
   return this.pixelFactor*(this.minutes-wake);
 };
 Time.prototype.fromOffset = function(offset, wake){
-  //console.log('fromOffset');
   var minutes = offset / this.pixelFactor;
   this.minutes = minutes+wake;
   return this;
@@ -48,6 +47,21 @@ Time.prototype.toString = function() {
   hours = hours < 13 ? hours : hours-12;
   return hours+":"+min+ampm;
 };
+
+function closest5(i){
+  i = Math.round(i);
+  mod = i % 5;
+  if ( mod ) i = mod > 3 ? i+5-mod : i-mod;
+  return i;
+}
+
+function closest15(i){
+  i = Math.round(i);
+  mod = i % 15;
+  if ( mod ) i = mod > 3 ? i+15-mod : i-mod;
+  return i;  
+}
+
 
 angular.module('util', [])
 
