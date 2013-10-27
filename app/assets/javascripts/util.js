@@ -62,10 +62,18 @@ function closest15(i){
   return i;  
 }
 
-
+function min2Str(min) {
+  var hrs = Math.floor(min / 60),
+      mins = min % 60;
+  hrs = hrs > 0 ? hrs+'hr' : '';
+  mins = mins > 1 ? mins+'min' : '';
+  return hrs+' '+mins;
+}
 angular.module('util', [])
 
   .value('Time', Time)
+
+  .value('min2Str', min2Str)
 
   .value('date2day', function(date) {
 	   return [date.getFullYear(),date.getMonth()+1,date.getDate()].join('-');

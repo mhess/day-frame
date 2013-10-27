@@ -4,6 +4,7 @@
 //= require jquery.ui.resizable
 //= require util
 //= require task_services
+//= require bootstrap/modal
 
 var app = angular.module("app", ['taskServices', 'util'])
 
@@ -39,8 +40,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                                            });
                            }])
 
-  .directive('task', ['$compile',
-                      function($compile) {
+  .directive('task', ['$compile', 'min2Str',
+                      function($compile, min2Str) {
                         return { restrict: 'E',
                                  templateUrl: 'angular/task.html',
                                  replace: true,
@@ -50,16 +51,22 @@ var app = angular.module("app", ['taskServices', 'util'])
 
                                    // Scoped variables that determine the
                                    // element's height and displayed range.
-                                   scope.duration = task.duration;                                   
-                                   scope.start = task.start;
+                                   //scope.duration = task.duration;               
+                                   //scope.start = task.start;
                                    scope.drag = false;
+                                   
+                                   scope.$watch('task.duration+""+task.start',
+                                                function(){scope.start=task.start;
+                                                           scope.duration=task.duration;});
 
                                    scope.range = function(){
-                                     if ( scope.start===null ) return '';
-                                     var begin = scope.start.toString(),
-                                         end = scope.start.add(scope.duration).toString(); 
+                                     if ( !scope.start ) return '';
+                                     var begin = scope.start,
+                                         end = scope.start.add(scope.duration);
                                      return begin+' - '+end;
                                    };
+                                   
+                                   scope.dur = function(){return min2Str(scope.duration);};
 
                                    // Set task element style according to model object
                                    // properties (start, duration)
@@ -69,8 +76,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                        styles.height = task.duration;
                                        if ( task.start!==null )
                                          angular.extend(styles,
-                                                        {position: 'absolute',
-                                                         top: task.start.toOffset(scope.wake),
+                                                        {top: task.start.toOffset(scope.wake),
                                                          left: 0, height: scope.duration});
                                        if ( styles.height < ( 8 + 14 ) ) {
                                          styles.fontSize = styles.height - 8;
@@ -132,7 +138,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                         if ( task.start===null ) {
                                           el.hide();
                                           scope.$apply('drag=true');
-                                          }
+                                        }
                                       },
                                       stop: function(event, ui) {
                                         if (task.start===null) {
@@ -145,7 +151,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                             tLeft = timeDroppable.offset().left;
                                         if ( Math.abs(dLeft-tLeft) <= 25 ) {
                                           var offset = ui.helper.offset().top - timeDroppable.offset().top;
-                                          offset = closest5(offset);
+                                          offset = closest15(offset);
                                           scope.$apply(function(){scope.start = new Time(offset, scope.wake);});
                                         } else {
                                           scope.$apply(function(){scope.start=null;});
@@ -159,11 +165,10 @@ var app = angular.module("app", ['taskServices', 'util'])
                         link: function(scope, el) {                        
                           el.droppable(
                             {drop: function (event, ui) {
-                               var taskId = ui.draggable.attr("x-task-id"),
-                                   offset = closest5(ui.offset.top - el.offset().top);
-                               scope.$apply(
-                                 function() {scope.Tasks.assign(taskId, offset);}
-                               );
+                               var offset = closest5(ui.offset.top - el.offset().top);
+                               var taskScope = ui.draggable.scope();
+                               taskScope.$apply(
+                                 function(){taskScope.Tasks.assign(taskScope.task.id, offset);});
                              }});
                         }        
                       };})
@@ -171,10 +176,10 @@ var app = angular.module("app", ['taskServices', 'util'])
   .directive('taskModal', function() {
                return {restrict: 'C',
                        scope: true,
-                       replace: true,
                        templateUrl: 'angular/task_modal.html',
                        link: function(scope, element, attrs) {
 
+                         element.modal({show: false});
                          // This is the task being operated on by the modal as well
                          // as the flag which shows/hides the modal
                          scope.task = null;
@@ -182,7 +187,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                          // Register this directive/modal's handle on the
                          // controller's modal object
                          scope.modal.task = function(task) {
-                           scope.modal.active = 'task';
+                           element.modal('show');
                            scope.header = task==null ? "New Task" : "Edit Task";
                            scope.task = task || {};
                            scope.taskTmpl = {};
@@ -202,7 +207,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                          };
 
                          scope.close = function() {
-                           scope.modal.active=null;
+                           element.modal('hide');
                            scope.task=null;
                          };
                        }
