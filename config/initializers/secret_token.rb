@@ -9,4 +9,4 @@
 
 # Make sure your secret_key_base is kept private
 # if you're sharing your code publicly.
-DayPlanner::Application.config.secret_key_base = '40f228acd8bd6ff56e14788e0d621a011004869c269d671d5970618dcefa02a8664c26a165f0ec9572c6e100f5253ddd702a12a0b9d5954ebde5c44a11a3da5f'
+DayPlanner::Application.config.secret_key_base = ENV['SECRET_KEY_BASE']
