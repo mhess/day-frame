@@ -186,10 +186,36 @@ body { line-height: initial; }
 // Modals
 
 .task-modal {
-  label {
-    width: 120px;
-  }
-  .duration input{
-    width: 50px;
-  }    
+  .form-horizontal {
+    .title input {
+      width: 444px;
+    }
+    .form-group > div{
+      display: inline-block;
+    }
+    input,select {
+      display: inline-block;
+      width: initial;      
+    }
+    select {
+      vertical-align: bottom;
+    }
+    .feedback {
+      margin-left: 15px;
+    }
+    .duration {
+      input {
+        width: 80px;
+        margin-right: 5px;
+        &:last-child {
+          margin-left: 15px;
+        }
+      }
+    }
+    label {
+      vertical-align: top;
+      width: 90px;
+      padding-right: 0;
+    }
+  }  
 }

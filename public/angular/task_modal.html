@@ -1,22 +1,46 @@
 <div class="modal-dialog">
   <div class="modal-content">
     <div class="modal-header"><h3 class="modal-title">{{header}}</h3></div>
-    <form>
+    <form name="form">
       <div class="modal-body">
-        <div class="form-group"><label>Title:</label><input ng-model="taskTmpl.title"></div>
-        <div class="form-group duration">
-          <label>Duration:</label><input type="number" ng-model="taskTmpl.dur.hours"/> hr <input type="number" ng-model="taskTmpl.dur.min" step="5" min="0" max="55"/> min</div>
-        <div class="form-group"><label>Start Time:</label><input type="time" ng-model="taskTmpl.start" step="300"></div>
-        <div class="form-group">
-          <label>Priority:</label>
-          <select>
-            <option value="1">Urgent</option>
-            <option value="2">Important</option>
-            <option value="3" selected>Normal</option>
-            <option value="4">Whenever</option>
-          </select>
+        <div class="form-horizontal">
+          <div class="form-group title">
+            <label class="control-label">Title:</label>
+            <div class="feedback">
+              <input class="form-control" type="text" name="title" ng-change="titleChange()" ng-model="tmpl.title">
+              <div class="help-block" ng-show="errors.title">{{errors.title}}</div>
+            </div>
+          </div>
+          <div class="form-group duration">
+            <label class="control-label">Duration:</label>
+            <div class="feedback">
+            <span>
+              <input class="form-control" type="number" ng-change="durChange(true)" ng-model="dur.hr" min="0" max="24"/> hr
+              <input class="form-control" type="number" ng-change="durChange(false)" ng-model="dur.min" min="0" step="5"/> min
+            </span>
+            <div class="help-block" ng-show="errors.dur">{{errors.dur}}</div>
+            </div>
+          </div>
+          <div class="form-group start">
+            <label class="control-label"> Start Time:</label>
+            <div class="feedback">
+              <input class="form-control" type="time" ng-model="tmpl.start" step="300"> &lt;hr&gt; : &lt;min&gt; &lt;AM/PM&gt;
+              <div class="help-block" ng-show="startError()">{{startError()}}</div>
+            </div>
+          </div>
+          <div class="form-group priority">
+            <label class="control-label">Priority:</label>
+            <select class="feedback" ng-model="tmpl.priority">
+              <option value="1">Urgent</option>
+              <option value="2">Important</option>
+              <option value="3">Normal</option>
+              <option value="4">Whenever</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group"><label>Description:</label><textarea ng-model="taskTmpl.description"></textarea></div>
+        <div class="form-group">
+          <label>Description:</label>
+          <textarea class="form-control" ng-model="taskTmpl.description"></textarea></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" ng-click="close()">Cancel</button>

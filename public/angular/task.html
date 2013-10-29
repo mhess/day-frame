@@ -1,6 +1,6 @@
 <div class="task" x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="getClass()">
   <div class="title">{{task.title}}</div>
-  <div class="duration" ng-hide="start" ng-bind="dur()"></div>
+  <div class="duration" ng-hide="start" ng-bind="task.duration"></div>
   <div class="interval" ng-show="start" ng-bind="range()"></div>  
   <div class="control">
     <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" ng-show="task.start && !drag"></span>

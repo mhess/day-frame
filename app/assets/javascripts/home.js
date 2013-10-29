@@ -40,8 +40,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                                            });
                            }])
 
-  .directive('task', ['$compile', 'min2Str',
-                      function($compile, min2Str) {
+  .directive('task', ['$compile',
+                      function($compile) {
                         return { restrict: 'E',
                                  templateUrl: 'angular/task.html',
                                  replace: true,
@@ -51,33 +51,31 @@ var app = angular.module("app", ['taskServices', 'util'])
 
                                    // Scoped variables that determine the
                                    // element's height and displayed range.
-                                   //scope.duration = task.duration;               
-                                   //scope.start = task.start;
+                                   scope.start = task.start;
                                    scope.drag = false;
                                    
-                                   scope.$watch('task.duration+""+task.start',
+                                   scope.$watch('task.duration.min+""+task.start',
                                                 function(){scope.start=task.start;
                                                            scope.duration=task.duration;});
 
                                    scope.range = function(){
                                      if ( !scope.start ) return '';
                                      var begin = scope.start,
-                                         end = scope.start.add(scope.duration);
+                                         end = scope.start.add(task.duration);
                                      return begin+' - '+end;
-                                   };
-                                   
-                                   scope.dur = function(){return min2Str(scope.duration);};
+                                   };                                   
 
                                    // Set task element style according to model object
                                    // properties (start, duration)
                                    scope.getStyle = function() {
                                      var styles = {};
                                      if (scope.drag || scope.start !== null) {
-                                       styles.height = task.duration;
+                                       styles.height = task.duration.pixels();
                                        if ( task.start!==null )
-                                         angular.extend(styles,
-                                                        {top: task.start.toOffset(scope.wake),
-                                                         left: 0, height: scope.duration});
+                                         angular.extend(
+                                           styles,
+                                           {top: scope.start.toOffset(scope.wake),
+                                            left: 0, height: task.duration.pixels()});
                                        if ( styles.height < ( 8 + 14 ) ) {
                                          styles.fontSize = styles.height - 8;
                                        }
@@ -106,13 +104,12 @@ var app = angular.module("app", ['taskServices', 'util'])
                                      el.resizable({handles: 's', grid: [0, 5],
                                                    containment:'parent',
                                                    resize: function(e,ui){
-                                                     scope.$apply('duration='+closest5(ui.size.height));
-                                                   },
+                                                     scope.$apply(
+                                                       function(){task.duration.fromPx(closest5(ui.size.height));}
+                                                     );},
                                                    stop: function(e,ui){
                                                      scope.$apply(
-                                                       function() {
-                                                         scope.Tasks.modify(task.id, {duration: scope.duration});
-                                                       });
+                                                       function() {task.save();});
                                                    }
                                                   });
                                    } else {
@@ -173,42 +170,88 @@ var app = angular.module("app", ['taskServices', 'util'])
                         }        
                       };})
 
-  .directive('taskModal', function() {
-               return {restrict: 'C',
-                       scope: true,
-                       templateUrl: 'angular/task_modal.html',
-                       link: function(scope, element, attrs) {
+  .directive('taskModal', ['Minutes',
+                           function(Minutes) {
+                             return {restrict: 'C',
+                                     scope: true,
+                                     templateUrl: 'angular/task_modal.html',
+                                     link: function(scope, el, attr) {
+                                       scope.attr = attr;
+                                       el.modal({show: false});
+                                       scope.dur = {hr: null, min: null};
+                                       var saveBtn = el.find('.btn-primary'),
+                                           formGroups = {dur: el.find('.duration'),
+                                                         title: el.find('.title'),
+                                                         start: el.find('.start')};
+                                       
+                                       scope.errors = {dur: null, title: null, start: null};
 
-                         element.modal({show: false});
-                         // This is the task being operated on by the modal as well
-                         // as the flag which shows/hides the modal
-                         scope.task = null;
+                                       function toggleErr(fg, error) {                                         
+                                         if ( error ) {
+                                           formGroups[fg].addClass('has-error');
+                                           scope.errors[fg] = error;
+                                           saveBtn.prop('disabled', true);
+                                         } else {
+                                           formGroups[fg].removeClass('has-error');
+                                           scope.errors[fg] = null;
+                                           saveBtn.prop('disabled', false);
+                                         }
+                                       }
+                                       
+                                       scope.titleChange = function(){
+                                         var error = null;
+                                         if ( !scope.tmpl.title ) {
+                                           error = "Title cannot be blank.";
+                                         }
+                                         toggleErr('title', error);
+                                       };
 
-                         // Register this directive/modal's handle on the
-                         // controller's modal object
-                         scope.modal.task = function(task) {
-                           element.modal('show');
-                           scope.header = task==null ? "New Task" : "Edit Task";
-                           scope.task = task || {};
-                           scope.taskTmpl = {};
-                           angular.extend(scope.taskTmpl, scope.task);
-                         };
+                                       scope.durChange = function() {
+                                         var dur = scope.dur;
+                                         if ( dur.min > 59 ) {
+                                           dur.hr += Math.floor(dur.min / 60);
+                                           dur.min = dur.min % 60;
+                                         }                                           
+                                         var error = null;
+                                         if ( (!dur.min && !dur.hr) || (!dur.hr && dur.min < 10) ) {
+                                           error = "Duration must at least 10 minutes.";
+                                         } else if ( dur.min > 59 ) {
+                                           
+                                         } else if ( dur.min % 5 ) {
+                                           error = "Duration must be a multiple of 5 minutes.";
+                                         }
+                                         toggleErr('dur', error);
+                                       };
 
-                         scope.save = function() {
-                           if ( 'start' in scope.taskTmpl ) {
-                             delete scope.taskTmpl.start;
-                           }
-                           if ( 'id' in scope.task ) {
-                             scope.Tasks.modify(scope.task.id, scope.taskTmpl);
-                           } else {
-                             scope.Tasks.create(scope.taskTmpl);
-                           }
-                           scope.close();
-                         };
+                                       // Register this directive/modal's handle on the
+                                       // controller's modal object
+                                       scope.modal.task = function(t) {
+                                         el.modal('show');
+                                         scope.header = t==null ? "Create Task" : "Edit Task";
+                                         var tmpl = t && angular.copy(t) || {title: "New Task", start: null,
+                                                                             priority: 3, description: null};
+                                         scope.dur =  t ? t.duration.withHrs() : {hr: 0, min: 30};
+                                         tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
+                                         scope.tmpl = tmpl;
+                                       };
 
-                         scope.close = function() {
-                           element.modal('hide');
-                           scope.task=null;
-                         };
-                       }
-                      };});
+                                       scope.startError = function () {};
+
+                                       scope.save = function() {
+                                         var tmpl = scope.tmpl;
+                                         tmpl.duration = new Minutes(scope.dur.hr, closest5(scope.dur.min));
+                                         tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
+                                         tmpl.priority = parseInt(tmpl.priority);
+                                         if ( 'id' in scope.tmpl ) {
+                                           scope.Tasks.modify(tmpl.id, tmpl);
+                                         } else {                                           
+                                           scope.Tasks.create(tmpl);
+                                           }
+                                         scope.close();
+                                       };
+
+                                       scope.close = function() {
+                                         el.modal('hide');
+                                       };
+                                     }
+                                    };}]);

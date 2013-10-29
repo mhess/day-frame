@@ -5,41 +5,41 @@ angular.module('taskServices', ['rails', 'util'])
 // The operations in the factory assume an $apply context
 
   .factory('TaskService',
-           ['railsResourceFactory', 'date2day', function(railsResourceFactory, date2day) {
+           ['railsResourceFactory', 'date2day', 'setPixelFactor', 'Time', 'Minutes',
+            function(railsResourceFactory, date2day, setPixelFactor, Time, Minutes) {
               return function(scope){
 
-                Time.prototype.setPixelFactor(1);
+                setPixelFactor(1);
 
-                var Task = railsResourceFactory({ url: "/tasks",
-                                                  name: "task"});
+                var TaskRes = railsResourceFactory({ url: "/tasks",
+                                                     name: "task"});
 
-                Task.beforeRequest(function(data){
-                                     if ( "start" in data && data.start ) {
-                                       return angular.extend(angular.copy(data), {start: data.start.minutes});
-                                     }
-                                     return data;
-                                  });
-
-                Task.beforeResponse(function(data) {
-                                     if (angular.isArray(data)) {
-                                       angular.forEach(data, function(task){
-                                                         task.start = task.start===null ? null : task.start= new Time(task.start);});
-                                     } else {
-                                       data.start = data.start===null ? null : new Time(data.start);  
-                                     }                                     
-                                  });
+                TaskRes.beforeRequest(function(data){
+                                        var copy = angular.copy(data);
+                                        if ( "start" in copy && copy.start ) {
+                                          angular.extend(copy, {start: data.start.minutes});
+                                        }
+                                        copy.duration = copy.duration.min;
+                                        return copy;
+                                      });
                 
                 var day;
                 var taskMap = {};
                 var taskSrvObj = this;
+
+                function taskFromServ(task) {
+                  task.start = task.start===null ? null : new Time(task.start);
+                  task.duration = new Minutes(task.duration);
+                  taskSrvObj.add(task);
+                }
                 
                 this.update = function(dateObj) {
                   day = date2day(dateObj);
                   this.list = [];
                   taskMap = {};
-                  Task.query({day: day})
+                  TaskRes.query({day: day})
                     .then(function(res) {
-                            angular.forEach(res, function(task) { taskSrvObj.add(task); });
+                            angular.forEach(res, taskFromServ);
                           });
                 };
 
@@ -62,10 +62,16 @@ angular.module('taskServices', ['rails', 'util'])
                       props.day = day;
                     }
                   }
-                  
                   angular.extend(taskMap[id], props)
                     .update().then(angular.noop,
                                    function(){ alert("Task modification failed"); });
+                };
+
+                this.create = function(taskProps) {
+                  if ( "start" in taskProps ) taskProps.day = day;
+                  new TaskRes(taskProps).create()
+                    .then(function(data) { taskFromServ(data); },
+                          function() { alert("Task creation failed"); });
                 };
 
                 this.assign = function(id, offset) {
@@ -76,14 +82,6 @@ angular.module('taskServices', ['rails', 'util'])
 
                 this.unassign = function(id) {
                   this.modify(id, {start: null});
-                };
-
-                this.create = function(taskProps) {
-                  if ("start" in taskProps ) taskProps.day = day;
-                  var task = new Task(angular.extend(taskProps));
-                  task.create()
-                    .then(function() { taskSrvObj.add(task); },
-                          function() { alert("Task creation failed"); });
                 };
 
                 this.delete = function(id) {
