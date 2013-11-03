@@ -190,8 +190,10 @@ body { line-height: initial; }
     .title input {
       width: 444px;
     }
-    .form-group > div{
-      display: inline-block;
+    .form-group {
+      height: 55px;
+      margin-bottom: 5px;
+      & > div { display: inline-block; }
     }
     input,select {
       display: inline-block;
@@ -211,6 +213,12 @@ body { line-height: initial; }
           margin-left: 15px;
         }
       }
+    }
+    .help-block{
+      margin-top: 3px;
+      margin-bottom: 0;
+      height: 12px;
+      font-size: 12px;
     }
     label {
       vertical-align: top;

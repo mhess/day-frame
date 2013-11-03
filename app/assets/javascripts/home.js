@@ -22,8 +22,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                            function($scope, TaskService, hoursArray, Time) {
                              // State for this controller
                              $scope.day = new Date();
-                             $scope.wake = 420;   // 7am
-                             $scope.sleep = 1380; // 10pm
+                             $scope.wake = new Time('7:00');
+                             $scope.sleep = new Time('22:00');
                              $scope.modal = {active: false};
                              
                              // Services attached to this controller's scope
@@ -186,6 +186,10 @@ var app = angular.module("app", ['taskServices', 'util'])
                                        
                                        scope.errors = {dur: null, title: null, start: null};
 
+                                       // Restrict input of duration inputs
+                                       el.find('.duration input').keypress(
+                                         function(e){ return e.which > 47 && e.which < 58;});
+
                                        function toggleErr(fg, error) {                                         
                                          if ( error ) {
                                            formGroups[fg].addClass('has-error');
@@ -206,7 +210,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                          toggleErr('title', error);
                                        };
 
-                                       scope.durChange = function() {
+                                       scope.durationChange = function() {
                                          var dur = scope.dur;
                                          if ( dur.min > 59 ) {
                                            dur.hr += Math.floor(dur.min / 60);
@@ -221,6 +225,16 @@ var app = angular.module("app", ['taskServices', 'util'])
                                            error = "Duration must be a multiple of 5 minutes.";
                                          }
                                          toggleErr('dur', error);
+                                       };
+
+                                       scope.startChange = function() {
+                                         var t = new Time(scope.tmpl.start),
+                                             wake = scope.wake,
+                                             sleep = scope.sleep,
+                                             error = null;
+                                         if ( t.lt(wake) || t.gt(sleep) )
+                                           error = "Time must be after "+wake+" and before "+sleep+'.';
+                                         toggleErr('start', error);
                                        };
 
                                        // Register this directive/modal's handle on the
