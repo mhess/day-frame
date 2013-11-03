@@ -53,12 +53,13 @@ var app = angular.module("app", ['taskServices', 'util'])
                                    // element's height and displayed range.
                                    scope.start = task.start;
                                    scope.drag = false;
+                                   scope.resize = false;
                                    
                                    scope.$watch('task.duration.min+""+task.start',
                                                 function(){scope.start=task.start;
                                                            scope.duration=task.duration;});
 
-                                   scope.range = function(){
+                                   scope.range = function() {
                                      if ( !scope.start ) return '';
                                      var begin = scope.start,
                                          end = scope.start.add(task.duration);
@@ -89,6 +90,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                                      if ( height < (6+28) ) {
                                        val += ' single-line';
                                      }
+                                     if (task.start===null)
+                                       val += ' clearfix';
                                      return val;
                                    };
                                    
@@ -99,23 +102,24 @@ var app = angular.module("app", ['taskServices', 'util'])
                                    };
 
                                    // Set CSS/draggable based on whether assigned or not
-                                   if (task.start!=null) {
-                                     el.draggable({containment:'.time-droppable'});
+                                   if (task.start!==null) {
+                                     el.draggable({stack: true,
+                                                   containment:'.time-droppable'});
                                      el.resizable({handles: 's', grid: [0, 5],
                                                    containment:'parent',
                                                    resize: function(e,ui){
                                                      scope.$apply(
                                                        function(){task.duration.fromPx(closest5(ui.size.height));}
                                                      );},
-                                                   stop: function(e,ui){
+                                                   start: function(){scope.resize=true;},
+                                                   stop: function(){
                                                      scope.$apply(
-                                                       function() {task.save();});
-                                                   }
-                                                  });
+                                                       function() {task.save(); scope.resize=false;});
+                                                   }});
                                    } else {
                                      el.draggable(
                                        {containment: "document",
-                                        helper: function() {                                          
+                                        helper: function() {
                                           var clone = $(this).clone().removeAttr('ng-repeat');
                                           scope.$apply(
                                             function(){
@@ -126,23 +130,20 @@ var app = angular.module("app", ['taskServices', 'util'])
                                        });
                                    }
                                    
+                                   // Drag config for both types of tasks.
                                    el.draggable(
                                      {snap: ".snap",
                                       snapMode: "inner",
                                       snapTolerance: 25,
                                       revert: 'invalid',
-                                      start: function(event, ui) {
-                                        if ( task.start===null ) {
+                                      start: function(){
+                                        if ( task.start===null )
                                           el.hide();
-                                          scope.$apply('drag=true');
-                                        }
-                                      },
-                                      stop: function(event, ui) {
-                                        if (task.start===null) {
+                                        scope.$apply('drag=true'); },
+                                      stop: function(){
+                                        if ( task.start===null )
                                           el.show();
-                                          scope.$apply('drag=false');
-                                        }
-                                      },
+                                        scope.$apply('drag=false'); },
                                       drag: function(e, ui) {
                                         var dLeft = ui.offset.left,
                                             tLeft = timeDroppable.offset().left;
@@ -170,8 +171,8 @@ var app = angular.module("app", ['taskServices', 'util'])
                         }        
                       };})
 
-  .directive('taskModal', ['Minutes',
-                           function(Minutes) {
+  .directive('taskModal', ['Minutes', 'Time',
+                           function(Minutes, Time) {
                              return {restrict: 'C',
                                      scope: true,
                                      templateUrl: 'angular/task_modal.html',
@@ -188,7 +189,7 @@ var app = angular.module("app", ['taskServices', 'util'])
 
                                        // Restrict input of duration inputs
                                        el.find('.duration input').keypress(
-                                         function(e){ return e.which > 47 && e.which < 58;});
+                                         function(e){return e.which > 47 && e.which < 58;});
 
                                        function toggleErr(fg, error) {                                         
                                          if ( error ) {
@@ -197,12 +198,12 @@ var app = angular.module("app", ['taskServices', 'util'])
                                            saveBtn.prop('disabled', true);
                                          } else {
                                            formGroups[fg].removeClass('has-error');
-                                           scope.errors[fg] = null;
+                                           scope.errors[fg] = '';
                                            saveBtn.prop('disabled', false);
                                          }
                                        }
                                        
-                                       scope.titleChange = function(){
+                                       scope.validTitle = function(){
                                          var error = null;
                                          if ( !scope.tmpl.title ) {
                                            error = "Title cannot be blank.";
@@ -210,24 +211,25 @@ var app = angular.module("app", ['taskServices', 'util'])
                                          toggleErr('title', error);
                                        };
 
-                                       scope.durationChange = function() {
+                                       scope.validDuration = function() {
                                          var dur = scope.dur;
                                          if ( dur.min > 59 ) {
                                            dur.hr += Math.floor(dur.min / 60);
                                            dur.min = dur.min % 60;
-                                         }                                           
+                                         }
+                                         if ( dur.hr > 23 )
+                                           dur.hr = 23;
+                                           
                                          var error = null;
                                          if ( (!dur.min && !dur.hr) || (!dur.hr && dur.min < 10) ) {
                                            error = "Duration must at least 10 minutes.";
-                                         } else if ( dur.min > 59 ) {
-                                           
                                          } else if ( dur.min % 5 ) {
-                                           error = "Duration must be a multiple of 5 minutes.";
+                                           error = "Duration must be a multiple of 5 mintues.";
                                          }
                                          toggleErr('dur', error);
                                        };
 
-                                       scope.startChange = function() {
+                                       scope.validStart = function() {
                                          var t = new Time(scope.tmpl.start),
                                              wake = scope.wake,
                                              sleep = scope.sleep,

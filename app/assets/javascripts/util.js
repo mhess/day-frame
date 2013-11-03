@@ -6,7 +6,7 @@ function setPixelFactor(factor){
 // Time constructor
 function Time(init, wake){
   if ( wake!==undefined )  {               // init is an offset
-    this.minutes = init+wake;
+    this.minutes = init+wake.minutes;
   } else if ( typeof init === 'string' ) { // init is from form
     var arr = init.split(':');
     var hrs = parseInt(arr[0]);
@@ -14,11 +14,11 @@ function Time(init, wake){
     this.minutes = (hrs*60)+min;    
   } else {
     this.minutes = init;                   // init is minutes
-  }  
+  }
 }
 
 // Instance methods
-Time.prototype.toOffset = function(wake){
+Time.prototype.toOffset = function(wake) {
   //console.log(this.pixelFactor+' '+this.minutes+' '+wake);
   return pixelFactor*(this.minutes-wake.minutes);
 };
@@ -84,9 +84,10 @@ Minutes.prototype.pixels = function() {
 };
 Minutes.prototype.toString = function() {
   var o = this.withHrs(),
-      hrs = o.hr > 0 ? o.hr+' hr' : '',
-      mins = o.min > 1 ? o.min+' min' : '';
-  return hrs+' '+mins;
+      arr = [];
+  o.hr && arr.push(o.hr+' hr');
+  o.min && arr.push(o.min+' min');
+  return arr.join(' ');
 };
 
 

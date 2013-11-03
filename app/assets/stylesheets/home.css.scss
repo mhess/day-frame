@@ -14,7 +14,6 @@ body { line-height: initial; }
 
 [ng-click] { cursor: pointer; }
 
-
 // Left side: Timeline, etc.
 
 .left {
@@ -98,7 +97,9 @@ body { line-height: initial; }
   
   .panel-body {
     padding: 10px;
-    width: $task-width + 20px;
+    width: $task-width + 35px;
+    max-height: 300px;
+    overflow-y: scroll;
   }
   .panel-heading {
     padding: 5px 10px;
@@ -116,7 +117,6 @@ body { line-height: initial; }
   position: relative;
   padding: 3px 8px;
   width: $task-width;
-  height: 60px;
   @include box-sizing(border-box);
   @include single-box-shadow($inset: true);
   border-radius: 5px;
@@ -130,46 +130,44 @@ body { line-height: initial; }
       overflow: hidden;
       display: inline-block;
     }
-    .title {
-      width: 50%;
-    }
-    .interval{
-      position: relative;
-      top: 0px;
+    .control { display: none; }
+    &:hover {
+      .control {
+        display: inline-block;
+        bottom: auto;         
+               }
+      .time-info { margin-right: 35px; }
+      &.assigned {
+        .time-info { margin-right: 70px; }
+        .title { width: 30%; }
+      }
     }
   }
-
   div {
     overflow: hidden;
     position: relative;
-  }
-    
+  }    
   .title {
     font-weight: bold;
+    float: left;
     display: inline-block;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 75%;
+    max-width: 80%;    
   }
-    
-  .interval {
-    display: inline-block;
-    position: absolute;
-    right: 6px;
-    top: 3px;
-  }
-  
-  .duration{
-    position: absolute;
-    right: 6px;
-    top: 3px;
-  }
-    
+  &.assigned .title { max-width: 45%; }
+
+  .time-info {
+    float: right;
+  }      
   .control {
     position: absolute;
     bottom: 3px;
     right: 6px;
+    display: none;
   }
+
+  &:hover .control{ display: initial; }
   
   &.pri-1 {background-color: $color-pri-1;}
   &.pri-2 {background-color: $color-pri-2;}

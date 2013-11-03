@@ -7,7 +7,7 @@
           <div class="form-group title">
             <label class="control-label">Title:</label>
             <div class="feedback">
-              <input class="form-control" type="text" name="title" ng-change="titleChange()" ng-model="tmpl.title">
+              <input class="form-control" type="text" name="title" ng-change="validTitle()" ng-model="tmpl.title">
               <div class="help-block">{{errors.title}}</div>
             </div>
           </div>
@@ -15,8 +15,8 @@
             <label class="control-label">Duration:</label>
             <div class="feedback">
             <span>
-              <input class="form-control" type="number" ng-change="durationChange(true)" ng-model="dur.hr" min="0" max="24"/> hr
-              <input class="form-control" type="number" ng-change="durationChange(false)" ng-model="dur.min" min="0" step="5"/> min
+              <input class="form-control" type="number" ng-change="validDuration()" ng-model="dur.hr" min="0"/> hr
+              <input class="form-control" type="number" ng-change="validDuration()" ng-model="dur.min" min="0" step="5"/> min
             </span>
             <div class="help-block">{{errors.dur}}</div>
             </div>
@@ -24,7 +24,7 @@
           <div class="form-group start">
             <label class="control-label"> Start Time:</label>
             <div class="feedback">
-              <input class="form-control" type="time" ng-model="tmpl.start" step="300" ng-change="startChange()">
+              <input class="form-control" type="time" ng-model="tmpl.start" step="300" ng-change="validStart()">
               <div class="help-block">{{errors.start}}</div>
             </div>
           </div>

@@ -1,11 +1,12 @@
-<div class="task" x-task-id="{{task.id}}" ng-style="getStyle()" ng-class="getClass()">
-  <div class="title">{{task.title}}</div>
-  <div class="duration" ng-hide="start" ng-bind="task.duration"></div>
-  <div class="interval" ng-show="start" ng-bind="range()"></div>  
-  <div class="control">
-    <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" ng-show="task.start && !drag"></span>
-    <span class="glyphicon glyphicon-pencil" title="Edit Task" ng-click="modal.task(task)"></span>
-    <span class="glyphicon glyphicon-remove" title="Delete Task" ng-click="deleteTask(task.id)"></span>
+<div class="task" ng-style="getStyle()" ng-class="getClass()">
+  <div class="title" ng-bind="task.title"></div>
+  <div class="time-info">
+    <span ng-show="start" ng-bind="range()"></span> (<span ng-bind="task.duration.toString()"></span>)
+  </div>
+  <div class="control" ng-show="resize || !drag">
+    <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" title="Change duration" ng-show="task.start"></span>
+    <span class="glyphicon glyphicon-pencil" title="Edit task" ng-click="modal.task(task)"></span>
+    <span class="glyphicon glyphicon-remove" title="Delete task" ng-click="deleteTask(task.id)"></span>
     <span class="glyphicon glyphicon-share-alt" title="Put in backlog" ng-show="task.start" ng-click="Tasks.modify(task.id, {start: null})"></span>
   </div>
 </div>
