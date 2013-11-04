@@ -14,12 +14,13 @@ body { line-height: initial; }
 
 [ng-click] { cursor: pointer; }
 
+a:hover { text-decoration: none; }
+
 // Left side: Timeline, etc.
 
 .left {
   position: relative;
-  display: inline-block;
-  
+  display: inline-block;  
 }
 
 .timeline {
@@ -72,12 +73,15 @@ body { line-height: initial; }
 // User Control Panel //
 
 .user-panel {
-  padding: 10px;
+  padding: 5px;
   position: fixed;
   right: 0px;
   top: 0px;
 }
 
+.navbar,.panel {
+  margin: 5px;
+}
 .navbar {
   padding: 0px 10px;
   
@@ -85,7 +89,7 @@ body { line-height: initial; }
     font-size: 16px;
     vertical-align: middle;
     
-    span {
+    a {
       margin-left: 10px;
       margin-right: 10px;
     }
@@ -93,6 +97,7 @@ body { line-height: initial; }
 }
 
 .task-list {
+  vertical-align: top;
   display: inline-block;
   
   .panel-body {
@@ -165,6 +170,7 @@ body { line-height: initial; }
     bottom: 3px;
     right: 6px;
     display: none;
+    span:hover { color: $link-color; }
   }
 
   &:hover .control{ display: initial; }
@@ -224,4 +230,34 @@ body { line-height: initial; }
       padding-right: 0;
     }
   }  
+}
+
+// Wake Sleep Widget
+
+.wake-sleep {
+  display: inline-block;
+  vertical-align: top;
+  width: 100px;
+
+  .panel-heading,.panel-footer{
+    text-align: center;
+    font-weight: bold;
+    padding: 2px 5px;
+  }
+  .panel-body {
+    padding: 0;
+    [hour-select]:first-child { border-bottom: 1px solid #ddd; }
+  }
+}
+
+[hour-select] {
+  text-align: center;
+  padding: 5px;
+  position: relative;
+  .glyphicon {
+    position: absolute;
+    top: 5px;
+  }
+  .glyphicon-chevron-left { left: 2px; }
+  .glyphicon-chevron-right { right: 2px; }
 }

@@ -33,10 +33,11 @@
       <div class="panel-body">
         <task ng-repeat="task in Tasks.list | assigned:false | orderBy:'priority'"></task>
       </div>
-    </div>
-  </div>
+    </div><!--
 
-  <!-- <div id="my-modal-back" ng-show="modal.active"></div> -->
+ --><%= render "wake_sleep" %>
+
+  </div>
 
   <div class="task-modal modal"></div>
 

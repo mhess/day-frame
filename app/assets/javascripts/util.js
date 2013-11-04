@@ -43,9 +43,9 @@ Time.prototype.toInt = function() {
 Time.prototype.toString = function() {
   var hours = Math.floor(this.minutes / 60 ),
       min = this.minutes % 60,
-      ampm = hours < 12 ? "am" : "pm";
+      ampm = Math.floor((hours)/12) % 2 ? "pm" : "am";
       min = (min/10) < 1 ? '0'+min : min;
-  hours = hours < 13 ? hours : hours-12;
+  hours = hours % 12 || 12;
   return hours+":"+min+ampm;
 };
 Time.prototype.toForm = function() {

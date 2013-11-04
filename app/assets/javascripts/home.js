@@ -270,4 +270,12 @@ var app = angular.module("app", ['taskServices', 'util'])
                                          el.modal('hide');
                                        };
                                      }
-                                    };}]);
+                                    };}])
+  .directive('hourSelect',
+             function(){
+               return { scope: { time: '=hourSelect' },
+                        templateUrl: 'angular/hour_select.html',
+                        controller: function($scope) {
+                          $scope.up = function(){$scope.time.addIn(60);};
+                          $scope.down = function(){$scope.time.addIn(-60);};
+                        }};});
