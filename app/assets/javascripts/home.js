@@ -38,6 +38,18 @@ var app = angular.module("app", ['taskServices', 'util'])
                              $scope.$watch('wake+""+sleep', function() {
                                              $scope.hours = hoursArray($scope.wake, $scope.sleep);
                                            });
+
+                             $scope.assigned = function(t) {return t.start!==null;};
+
+                             $scope.deleteTask = function(task) {
+                               if (window.confirm("Are you sure you want to delete this task?")){
+                                 task.delete();
+                               }
+                             };
+
+                             $scope.unassign = function(task) { task.update({start: null}); };
+
+
                            }])
 
   .directive('task', ['$compile',
@@ -51,18 +63,13 @@ var app = angular.module("app", ['taskServices', 'util'])
 
                                    // Scoped variables that determine the
                                    // element's height and displayed range.
-                                   scope.start = task.start;
                                    scope.drag = false;
                                    scope.resize = false;
                                    
-                                   scope.$watch('task.duration.min+""+task.start',
-                                                function(){scope.start=task.start;
-                                                           scope.duration=task.duration;});
-
                                    scope.range = function() {
-                                     if ( !scope.start ) return '';
-                                     var begin = scope.start,
-                                         end = scope.start.add(task.duration);
+                                     if ( !task.start ) return '';
+                                     var begin = task.start,
+                                         end = task.start.add(task.duration);
                                      return begin+' - '+end;
                                    };                                   
 
@@ -70,12 +77,12 @@ var app = angular.module("app", ['taskServices', 'util'])
                                    // properties (start, duration)
                                    scope.getStyle = function() {
                                      var styles = {};
-                                     if (scope.drag || scope.start !== null) {
+                                     if (scope.drag || task.start !== null) {
                                        styles.height = task.duration.pixels();
                                        if ( task.start!==null )
                                          angular.extend(
                                            styles,
-                                           {top: scope.start.toOffset(scope.wake),
+                                           {top: task.start.toOffset(scope.wake),
                                             left: 0, height: task.duration.pixels()});
                                        if ( styles.height < ( 8 + 14 ) ) {
                                          styles.fontSize = styles.height - 8;
@@ -95,12 +102,6 @@ var app = angular.module("app", ['taskServices', 'util'])
                                      return val;
                                    };
                                    
-                                   scope.deleteTask = function() {
-                                     if (window.confirm("Are you sure you want to delete this task?")){
-                                       scope.Tasks.delete(task.id);
-                                     }
-                                   };
-
                                    // Set CSS/draggable based on whether assigned or not
                                    if (task.start!==null) {
                                      el.draggable({stack: true,
@@ -150,9 +151,9 @@ var app = angular.module("app", ['taskServices', 'util'])
                                         if ( Math.abs(dLeft-tLeft) <= 25 ) {
                                           var offset = ui.helper.offset().top - timeDroppable.offset().top;
                                           offset = closest15(offset);
-                                          scope.$apply(function(){scope.start = new Time(offset, scope.wake);});
+                                          scope.$apply(function(){task.start = new Time(offset, scope.wake);});
                                         } else {
-                                          scope.$apply(function(){scope.start=null;});
+                                          scope.$apply(function(){task.start=null;});
                                         }
                                       }
                                      });
@@ -163,10 +164,10 @@ var app = angular.module("app", ['taskServices', 'util'])
                         link: function(scope, el) {                        
                           el.droppable(
                             {drop: function (event, ui) {
-                               var offset = closest5(ui.offset.top - el.offset().top);
+                               //var offset = closest5(ui.offset.top - el.offset().top);
                                var taskScope = ui.draggable.scope();
                                taskScope.$apply(
-                                 function(){taskScope.Tasks.assign(taskScope.task.id, offset);});
+                                 function(){taskScope.task.update();});
                              }});
                         }        
                       };})
@@ -177,7 +178,6 @@ var app = angular.module("app", ['taskServices', 'util'])
                                      scope: true,
                                      templateUrl: 'angular/task_modal.html',
                                      link: function(scope, el, attr) {
-                                       scope.attr = attr;
                                        el.modal({show: false});
                                        scope.dur = {hr: null, min: null};
                                        var saveBtn = el.find('.btn-primary'),
@@ -258,8 +258,10 @@ var app = angular.module("app", ['taskServices', 'util'])
                                          tmpl.duration = new Minutes(scope.dur.hr, closest5(scope.dur.min));
                                          tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
                                          tmpl.priority = parseInt(tmpl.priority);
+                                         // Editing existing task
                                          if ( 'id' in scope.tmpl ) {
-                                           scope.Tasks.modify(tmpl.id, tmpl);
+                                           scope.Tasks.get(tmpl.id).update(scope.tmpl);
+                                         // Creat new task
                                          } else {                                           
                                            scope.Tasks.create(tmpl);
                                            }
