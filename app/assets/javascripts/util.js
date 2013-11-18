@@ -69,6 +69,9 @@ Time.prototype.ceil = function() {
   var delta = this.minutes % 60;
   return new Time(this.minutes+60-delta);
 };
+Time.prototype.diff = function(other) {
+  return new Minutes(this.minutes - other.minutes);
+};
 
 
 // Minutes Constructor

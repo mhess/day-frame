@@ -284,10 +284,21 @@ var app = angular.module("app", ['taskServices', 'util'])
                                      }
                                     };}])
   .directive('hourSelect',
-             function(){
-               return { scope: { time: '=hourSelect' },
-                        templateUrl: 'angular/hour_select.html',
-                        controller: function($scope) {
-                          $scope.up = function(){$scope.time.addIn(60);};
-                          $scope.down = function(){$scope.time.addIn(-60);};
-                        }};});
+             ['TaskService', function(TaskService) {
+                var timeline = TaskService.timeline;
+                return { scope: { time: '=hourSelect', which: '@hourSelect' },
+                         templateUrl: 'angular/hour_select.html',
+                         controller: function($scope) {
+                           $scope.up = function() {
+                             var firstTask = timeline[0];
+                             if ( $scope.which==='wake' && firstTask )
+                               if ( $scope.time.diff(firstTask.start).min > -60 ) return;
+                             $scope.time.addIn(60);};
+                           $scope.down = function(){
+                             var lastTask = timeline[timeline.length-1];
+                             if ( $scope.which==='sleep' && lastTask ) {                               
+                               var endTime = lastTask.start.add(lastTask.duration);
+                               if ( $scope.time.diff(endTime).min < 60 ) return;
+                             }
+                             $scope.time.addIn(-60);};
+                         }};}]);
