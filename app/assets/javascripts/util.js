@@ -61,6 +61,14 @@ Time.prototype.lt = function(t) {
 Time.prototype.gt = function(t) {
   return this.minutes > t.minutes;
 };
+Time.prototype.floor = function() {
+  var delta = this.minutes % 60;
+  return new Time(this.minutes-delta);
+};
+Time.prototype.ceil = function() {
+  var delta = this.minutes % 60;
+  return new Time(this.minutes+60-delta);
+};
 
 
 // Minutes Constructor

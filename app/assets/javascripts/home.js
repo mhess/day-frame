@@ -8,38 +8,45 @@
 
 var app = angular.module("app", ['taskServices', 'util'])
 
-  .filter('assigned', function(){
-            return function(input, assigned) {
-              var result = [];
-              var pred = assigned ? function(s) {return s != null;} : function(s) {return s == null;};
-              angular.forEach(input, function(i) {
-                                if ( pred(i.start) ) result.push(i);
-                              });
-              return result;
-            };})
-
   .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time',
                            function($scope, TaskService, hoursArray, Time) {
                              // State for this controller
-                             $scope.day = new Date();
-                             $scope.wake = new Time('7:00');
-                             $scope.sleep = new Time('22:00');
-                             $scope.modal = {active: false};
-                             
-                             // Services attached to this controller's scope
-                             $scope.Tasks = new TaskService($scope);
+                             $scope.day = new Date();                             
+                             $scope.modal = {active: false};                             
+                             $scope.Tasks = TaskService;
+
+                             var timeline = TaskService.timeline;
                              
                              $scope.changeDay = function(change) {
-                               if ( change==null ) {
-                                 $scope.day = new Date();
-                               } else { $scope.day.setDate($scope.day.getDate()+change); }
+                               if ( change==null ) $scope.day = new Date();
+                               else $scope.day.setDate($scope.day.getDate()+change);
                              };
+
+
+                             // Day and wake/sleep watchers //
                              
-                             $scope.$watch('wake+""+sleep', function() {
+                             $scope.$watch('day',
+                                           function(day) {
+                                             TaskService.setDay(day).then(
+                                               function() {
+                                                 $scope.wake = new Time('7:00');
+                                                 $scope.sleep = new Time('22:00');
+                                                 if ( !timeline.length ) return;
+                                                 var first = timeline[0].start;
+                                                 var last = timeline[timeline.length-1].start;
+                                                 if ( first.lt($scope.wake) )
+                                                   $scope.wake = first.floor();
+                                                 if (last.gt($scope.sleep) )
+                                                   $scope.sleep = last.ceil();
+                                               });});
+                             
+                             $scope.$watch('wake+""+sleep', function(v) {
+                                             if ( !v ) return;
                                              $scope.hours = hoursArray($scope.wake, $scope.sleep);
                                            });
 
-                             $scope.assigned = function(t) {return t.start!==null;};
+                             
+                             // Task maniplulation functions //
 
                              $scope.deleteTask = function(task) {
                                if (window.confirm("Are you sure you want to delete this task?")){
@@ -151,7 +158,10 @@ var app = angular.module("app", ['taskServices', 'util'])
                                         if ( Math.abs(dLeft-tLeft) <= 25 ) {
                                           var offset = ui.helper.offset().top - timeDroppable.offset().top;
                                           offset = closest15(offset);
-                                          scope.$apply(function(){task.start = new Time(offset, scope.wake);});
+                                          scope.$apply(
+                                            function(){
+                                              if ( task.start ) task.start.fromOffset(offset, scope.wake);
+                                              else task.start = new Time(offset, scope.wake);});
                                         } else {
                                           scope.$apply(function(){task.start=null;});
                                         }
