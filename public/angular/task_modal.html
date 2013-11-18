@@ -4,19 +4,19 @@
     <form name="form">
       <div class="modal-body">
         <div class="form-horizontal">
-          <div class="form-group title">
+          <div class="form-group title" ng-class="errors.title && 'has-error'">
             <label class="control-label">Title:</label>
             <div class="feedback">
-              <input class="form-control" type="text" name="title" ng-change="validTitle()" ng-model="tmpl.title">
+              <input class="form-control" type="text" name="title" ng-model="tmpl.title">
               <div class="help-block">{{errors.title}}</div>
             </div>
           </div>
-          <div class="form-group duration">
+          <div class="form-group duration" ng-class="errors.dur && 'has-error'">
             <label class="control-label">Duration:</label>
             <div class="feedback">
             <span>
-              <input class="form-control" type="number" ng-change="validDuration()" ng-model="dur.hr" min="0"/> hr
-              <input class="form-control" type="number" ng-change="validDuration()" ng-model="dur.min" min="0" step="5"/> min
+              <input class="form-control" type="number" ng-model="dur.hr" min="0"/> hr
+              <input class="form-control" type="number" ng-model="dur.min" min="0" step="5"/> min
             </span>
             <div class="help-block">{{errors.dur}}</div>
             </div>
@@ -24,7 +24,7 @@
           <div class="form-group start">
             <label class="control-label"> Start Time:</label>
             <div class="feedback">
-              <input class="form-control" type="time" ng-model="tmpl.start" step="300" ng-change="validStart()">
+              <input class="form-control" type="time" ng-model="tmpl.start" step="300">
               <div class="help-block">{{errors.start}}</div>
             </div>
           </div>
@@ -44,7 +44,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" ng-click="close()">Cancel</button>
-        <button class="btn btn-primary" ng-click="save()">Save</button>
+        <button class="btn btn-primary" ng-disabled="invalid" ng-click="save()">Save</button>
       </div>
     </form>
   </div>

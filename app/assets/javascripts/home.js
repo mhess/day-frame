@@ -187,70 +187,66 @@ var app = angular.module("app", ['taskServices', 'util'])
                              return {restrict: 'C',
                                      scope: true,
                                      templateUrl: 'angular/task_modal.html',
-                                     link: function(scope, el, attr) {
-                                       el.modal({show: false});
-                                       scope.dur = {hr: null, min: null};
-                                       var saveBtn = el.find('.btn-primary'),
-                                           formGroups = {dur: el.find('.duration'),
-                                                         title: el.find('.title'),
-                                                         start: el.find('.start')};
-                                       
-                                       scope.errors = {dur: null, title: null, start: null};
+                                     controller: function($scope) {
+                                       $scope.tmpl = {};
+                                       $scope.invalid = false;
+                                       $scope.dur = {hr: null, min: null};
+                                       $scope.errors = {dur: null, title: null, start: null};
 
-                                       // Restrict input of duration inputs
-                                       el.find('.duration input').keypress(
-                                         function(e){return e.which > 47 && e.which < 58;});
-
-                                       function toggleErr(fg, error) {                                         
-                                         if ( error ) {
-                                           formGroups[fg].addClass('has-error');
-                                           scope.errors[fg] = error;
-                                           saveBtn.prop('disabled', true);
-                                         } else {
-                                           formGroups[fg].removeClass('has-error');
-                                           scope.errors[fg] = '';
-                                           saveBtn.prop('disabled', false);
-                                         }
-                                       }
-                                       
-                                       scope.validTitle = function(){
+                                       $scope.$watch('tmpl.title', function() {
                                          var error = null;
-                                         if ( !scope.tmpl.title ) {
+                                         if ( !$scope.tmpl.title ) {
                                            error = "Title cannot be blank.";
                                          }
-                                         toggleErr('title', error);
-                                       };
+                                         $scope.errors.title = error;
+                                       });
 
-                                       scope.validDuration = function() {
-                                         var dur = scope.dur;
+                                       $scope.$watch('dur', function(dur) {
                                          if ( dur.min > 59 ) {
                                            dur.hr += Math.floor(dur.min / 60);
                                            dur.min = dur.min % 60;
                                          }
                                          if ( dur.hr > 23 )
-                                           dur.hr = 23;
-                                           
+                                           dur.hr = 23;                                         
                                          var error = null;
                                          if ( (!dur.min && !dur.hr) || (!dur.hr && dur.min < 10) ) {
                                            error = "Duration must at least 10 minutes.";
                                          } else if ( dur.min % 5 ) {
                                            error = "Duration must be a multiple of 5 mintues.";
                                          }
-                                         toggleErr('dur', error);
-                                       };
+                                         $scope.errors.dur = error;
+                                       }, true);
 
-                                       scope.validStart = function() {
-                                         var t = new Time(scope.tmpl.start),
-                                             wake = scope.wake,
-                                             sleep = scope.sleep,
-                                             error = null;
-                                         if ( t.lt(wake) || t.gt(sleep) )
-                                           error = "Time must be after "+wake+" and before "+sleep+'.';
-                                         toggleErr('start', error);
+                                       $scope.$watch('errors', function(errs){
+                                         for (var k in errs) {
+                                           if ( errs[k] ) {
+                                             $scope.invalid = true;
+                                             return;
+                                           }
+                                         }
+                                         $scope.invalid = false;
+                                       }, true);
+
+                                       $scope.save = function() {
+                                         var tmpl = $scope.tmpl;
+                                         tmpl.duration = new Minutes($scope.dur.hr, closest5($scope.dur.min));
+                                         tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
+                                         tmpl.priority = parseInt(tmpl.priority);
+                                         // Editing existing task
+                                         if ( 'id' in $scope.tmpl ) {
+                                           $scope.Tasks.get(tmpl.id).update($scope.tmpl);
+                                         // Creat new task
+                                         } else {                                           
+                                           $scope.Tasks.create(tmpl);
+                                           }
+                                         $scope.close();
                                        };
+                                     },
+                                     link: function(scope, el, attr) {
+                                       //el.modal({show: false});
 
                                        // Register this directive/modal's handle on the
-                                       // controller's modal object
+                                       // parent controller's modal object
                                        scope.modal.task = function(t) {
                                          el.modal('show');
                                          scope.header = t==null ? "Create Task" : "Edit Task";
@@ -258,24 +254,7 @@ var app = angular.module("app", ['taskServices', 'util'])
                                                                              priority: 3, description: null};
                                          scope.dur =  t ? t.duration.withHrs() : {hr: 0, min: 30};
                                          tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
-                                         scope.tmpl = tmpl;
-                                       };
-
-                                       scope.startError = function () {};
-
-                                       scope.save = function() {
-                                         var tmpl = scope.tmpl;
-                                         tmpl.duration = new Minutes(scope.dur.hr, closest5(scope.dur.min));
-                                         tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
-                                         tmpl.priority = parseInt(tmpl.priority);
-                                         // Editing existing task
-                                         if ( 'id' in scope.tmpl ) {
-                                           scope.Tasks.get(tmpl.id).update(scope.tmpl);
-                                         // Creat new task
-                                         } else {                                           
-                                           scope.Tasks.create(tmpl);
-                                           }
-                                         scope.close();
+                                         angular.extend(scope.tmpl, tmpl);
                                        };
 
                                        scope.close = function() {
