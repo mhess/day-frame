@@ -28,7 +28,7 @@
 
     <div class="task-list panel panel-default">
       <div class="panel-heading clearfix">
-        Task Backlog<a class="btn btn-default" ng-click="modal.task()">Add Task</a>
+        Task Backlog<a class="btn btn-default" ng-click="modals.task()">Add Task</a>
       </div>
       <div class="panel-body">
         <task ng-repeat="task in Tasks.backlog | orderBy:'priority'"></task>
@@ -38,7 +38,5 @@
  --><%= render "wake_sleep" %>
 
   </div>
-
-  <div class="task-modal modal"></div>
 
 </div>

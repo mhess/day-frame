@@ -5,7 +5,7 @@
   </div>
   <div class="control" ng-show="resize || !drag">
     <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" title="Change duration" ng-show="task.start"></span>
-    <span class="glyphicon glyphicon-pencil" title="Edit task" ng-click="modal.task(task)"></span>
+    <span class="glyphicon glyphicon-pencil" title="Edit task" ng-click="modals.task(task)"></span>
     <span class="glyphicon glyphicon-remove" title="Delete task" ng-click="deleteTask(task)"></span>
     <span class="glyphicon glyphicon-share-alt" title="Put in backlog" ng-show="task.start" ng-click="unassign(task)"></span>
   </div>

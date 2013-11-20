@@ -4,15 +4,15 @@
 //= require jquery.ui.resizable
 //= require util
 //= require task_services
-//= require bootstrap/modal
+//= require modal
 
-var app = angular.module("app", ['taskServices', 'util'])
+var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal'])
 
-  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time',
-                           function($scope, TaskService, hoursArray, Time) {
+  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time', '$modals', '$window',
+                           function($scope, TaskService, hoursArray, Time, $modals, $window) {
                              // State for this controller
-                             $scope.day = new Date();                             
-                             $scope.modal = {active: false};                             
+                             $scope.day = new Date();
+                             $scope.modals = $modals;
                              $scope.Tasks = TaskService;
 
                              var timeline = TaskService.timeline;
@@ -49,13 +49,12 @@ var app = angular.module("app", ['taskServices', 'util'])
                              // Task maniplulation functions //
 
                              $scope.deleteTask = function(task) {
-                               if (window.confirm("Are you sure you want to delete this task?")){
+                               if ( $window.confirm("Are you sure you want to delete this task?") ){
                                  task.delete();
                                }
                              };
 
                              $scope.unassign = function(task) { task.update({start: null}); };
-
 
                            }])
 
@@ -182,86 +181,6 @@ var app = angular.module("app", ['taskServices', 'util'])
                         }        
                       };})
 
-  .directive('taskModal', ['Minutes', 'Time',
-                           function(Minutes, Time) {
-                             return {restrict: 'C',
-                                     scope: true,
-                                     templateUrl: 'angular/task_modal.html',
-                                     controller: function($scope) {
-                                       $scope.tmpl = {};
-                                       $scope.invalid = false;
-                                       $scope.dur = {hr: null, min: null};
-                                       $scope.errors = {dur: null, title: null, start: null};
-
-                                       $scope.$watch('tmpl.title', function() {
-                                         var error = null;
-                                         if ( !$scope.tmpl.title ) {
-                                           error = "Title cannot be blank.";
-                                         }
-                                         $scope.errors.title = error;
-                                       });
-
-                                       $scope.$watch('dur', function(dur) {
-                                         if ( dur.min > 59 ) {
-                                           dur.hr += Math.floor(dur.min / 60);
-                                           dur.min = dur.min % 60;
-                                         }
-                                         if ( dur.hr > 23 )
-                                           dur.hr = 23;                                         
-                                         var error = null;
-                                         if ( (!dur.min && !dur.hr) || (!dur.hr && dur.min < 10) ) {
-                                           error = "Duration must at least 10 minutes.";
-                                         } else if ( dur.min % 5 ) {
-                                           error = "Duration must be a multiple of 5 mintues.";
-                                         }
-                                         $scope.errors.dur = error;
-                                       }, true);
-
-                                       $scope.$watch('errors', function(errs){
-                                         for (var k in errs) {
-                                           if ( errs[k] ) {
-                                             $scope.invalid = true;
-                                             return;
-                                           }
-                                         }
-                                         $scope.invalid = false;
-                                       }, true);
-
-                                       $scope.save = function() {
-                                         var tmpl = $scope.tmpl;
-                                         tmpl.duration = new Minutes($scope.dur.hr, closest5($scope.dur.min));
-                                         tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
-                                         tmpl.priority = parseInt(tmpl.priority);
-                                         // Editing existing task
-                                         if ( 'id' in $scope.tmpl ) {
-                                           $scope.Tasks.get(tmpl.id).update($scope.tmpl);
-                                         // Creat new task
-                                         } else {                                           
-                                           $scope.Tasks.create(tmpl);
-                                           }
-                                         $scope.close();
-                                       };
-                                     },
-                                     link: function(scope, el, attr) {
-                                       //el.modal({show: false});
-
-                                       // Register this directive/modal's handle on the
-                                       // parent controller's modal object
-                                       scope.modal.task = function(t) {
-                                         el.modal('show');
-                                         scope.header = t==null ? "Create Task" : "Edit Task";
-                                         var tmpl = t && angular.copy(t) || {title: "New Task", start: null,
-                                                                             priority: 3, description: null};
-                                         scope.dur =  t ? t.duration.withHrs() : {hr: 0, min: 30};
-                                         tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
-                                         angular.extend(scope.tmpl, tmpl);
-                                       };
-
-                                       scope.close = function() {
-                                         el.modal('hide');
-                                       };
-                                     }
-                                    };}])
   .directive('hourSelect',
              ['TaskService', function(TaskService) {
                 var timeline = TaskService.timeline;
@@ -280,4 +199,84 @@ var app = angular.module("app", ['taskServices', 'util'])
                                if ( $scope.time.diff(endTime).min < 60 ) return;
                              }
                              $scope.time.addIn(-60);};
-                         }};}]);
+                         }};}])
+
+  .controller('taskModalCtrl', ['$scope', '$close', 'Time', 'Minutes', 'TaskService',
+                                function($scope, $close, Time, Minutes, ts) {
+                $scope.tmpl = {};
+                $scope.dur = {hr: null, min: null};
+                $scope.invalid = false;
+                $scope.errors = {dur: null, title: null, start: null};
+
+                $scope.$watch('tmpl.title', function() {
+                                var error = null;
+                                if ( !$scope.tmpl.title ) {
+                                  error = "Title cannot be blank.";
+                                }
+                                $scope.errors.title = error;
+                              });
+
+                $scope.$watch('dur', function(dur) {
+                                if ( dur.min > 59 ) {
+                                  dur.hr += Math.floor(dur.min / 60);
+                                  dur.min = dur.min % 60;
+                                }
+                                if ( dur.hr > 23 )
+                                  dur.hr = 23;                                         
+                                var error = null;
+                                if ( (!dur.min && !dur.hr) || (!dur.hr && dur.min < 10) ) {
+                                  error = "Duration must at least 10 minutes.";
+                                } else if ( dur.min % 5 ) {
+                                  error = "Duration must be a multiple of 5 mintues.";
+                                }
+                                $scope.errors.dur = error;
+                              }, true);
+
+                $scope.$watch('errors', function(errs){
+                                for (var k in errs) {
+                                  if ( errs[k] ) {
+                                    $scope.invalid = true;
+                                    return;
+                                  }
+                                }
+                                $scope.invalid = false;
+                              }, true);
+
+                $scope.close = $close;
+
+                $scope.save = function() {
+                  var tmpl = $scope.tmpl;
+                  tmpl.duration = new Minutes($scope.dur.hr, closest5($scope.dur.min));
+                  tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
+                  tmpl.priority = parseInt(tmpl.priority);
+                  // Editing existing task
+                  if ( 'id' in tmpl ) {
+                    ts.get(tmpl.id).update($scope.tmpl);
+                    // Creat new task
+                  } else {
+                    ts.create(tmpl);
+                  }
+                  $close();
+                };
+              }])
+
+  .constant('modalCfgs', {task: {tmplUrl: 'angular/task_modal.html',
+                                 ctrl: 'taskModalCtrl',
+                                 open: function(t) {
+                                   var scopeExt = {};
+                                   scopeExt.header = t==null ? "Create Task" : "Edit Task";
+                                   var tmpl = t && angular.copy(t) || {title: "New Task", start: null,
+                                                                       priority: 3, description: null};
+                                   scopeExt.dur =  t ? t.duration.withHrs() : {hr: 0, min: 30};
+                                   tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
+                                   scopeExt.tmpl = tmpl;
+                                   return scopeExt;
+                                 }}
+                         })
+
+  .config(['$modalsProvider', 'modalCfgs',
+           function($modalsProvider, modalCfgs) {
+             angular.forEach(modalCfgs,
+               function(val, key){$modalsProvider.register(key, val);});
+             $modalsProvider.appSelector = '[ng-app]';
+           }]);
