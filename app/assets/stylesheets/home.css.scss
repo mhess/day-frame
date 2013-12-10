@@ -10,34 +10,35 @@ $hour-height: 60px;
 $list-padding: 15px;
 
 /* Undo bootstrap styling */
-body { line-height: initial; }
+body {
+  line-height: initial; 
+  min-width: 1000px;
+}
 
 [ng-click] { cursor: pointer; }
 
 a:hover { text-decoration: none; }
 
-// Left side: Timeline, etc.
+// Working Area: Timeline, etc. //
 
-.left {
-  position: relative;
-  display: inline-block;  
+.working-area {
+  float: left;
 }
 
 .timeline {
-  margin: 50px;
+  margin: 20px;
 }
 
 .time-label {
-  position: relative;
-  display: inline-block;
+  float: left;
   width: 60px;
   border-right: 1px solid gray;
   vertical-align: text-top;
 }
 
 .time-droppable {
+  float: left;
   position: relative;
-  display: inline-block;
   width: $task-width;
   vertical-align: text-top;
 }
@@ -65,22 +66,23 @@ a:hover { text-decoration: none; }
   width: 100%;
 }
 
-.oddHour {
-  background-color: gray;
-}
-
 
 // User Control Panel //
 
-.user-panel {
+.widget-area {
   padding: 5px;
   position: fixed;
+  float: right;
   right: 0px;
   top: 0px;
+  max-width: 500px;
+
+  .demo & { position: relative; }
 }
 
 .navbar,.panel {
   margin: 5px;
+  float: left;
 }
 .navbar {
   padding: 0px 10px;
@@ -97,8 +99,6 @@ a:hover { text-decoration: none; }
 }
 
 .task-list {
-  vertical-align: top;
-  display: inline-block;
   
   .panel-body {
     padding: 10px;
@@ -187,7 +187,8 @@ a:hover { text-decoration: none; }
   }
 }
 
-// Modals
+
+// Modals //
 
 .task-modal {
   .form-horizontal {
@@ -232,11 +233,10 @@ a:hover { text-decoration: none; }
   }  
 }
 
-// Wake Sleep Widget
+
+// Wake Sleep Widget //
 
 .wake-sleep {
-  display: inline-block;
-  vertical-align: top;
   width: 100px;
 
   .panel-heading,.panel-footer{
