@@ -3,9 +3,7 @@
 <% end %>
 <div ng-app="app" ng-controller="viewCtrl">  
 
-  <% if not user_signed_in? %>
-    <%= render "welcome" %>
-  <% end %>
+  <%= render "welcome" %>
 
   <div class="dayframe clearfix <%= 'demo' if not user_signed_in? %>">
 

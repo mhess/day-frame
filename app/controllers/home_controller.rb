@@ -1,11 +1,8 @@
 class HomeController < ApplicationController
-
-  def welcome
-  end
   
   def index
-    if not user_signed_in?
-      redirect_to welcome_path and return
+    if user_signed_in?
+      cookies["user_info"] = {value: current_user.slice(:name, :wake, :sleep).to_json}
     end
   end
 

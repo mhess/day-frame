@@ -4,9 +4,9 @@
       <a class="glyphicon glyphicon-chevron-left" ng-click="changeDay(-1)"></a>
       {{day | date:"longDate"}}
       <a class="glyphicon glyphicon-chevron-right" ng-click="changeDay(1)"></a>
-      <a class="" ng-click="changeDay()">today</a>
+      <a ng-click="changeDay()">today</a>
     </p>
   <div class="navbar-right">
-    <%= link_to "Log Out", destroy_user_session_path, method: :delete, class: "btn btn-info navbar-btn"%>
+    <a class="btn btn-info navbar-btn" ng-click="logOut()">Log Out</a>
   </div>
 </nav>

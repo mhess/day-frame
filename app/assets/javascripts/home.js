@@ -1,27 +1,41 @@
 //= require angular
+//= require angular-cookies
 //= require jquery.ui.draggable
 //= require jquery.ui.droppable
 //= require jquery.ui.resizable
 //= require util
 //= require task_services
 //= require modal
+//= require auth
 
-var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal'])
+var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
 
-  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time', '$modals', '$window',
-                           function($scope, TaskService, hoursArray, Time, $modals, $window) {
+  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time', '$modals', '$window', '$auth',
+                           function($scope, TaskService, hoursArray, Time, $modals, $window, $auth) {
                              // State for this controller
                              $scope.day = new Date();
                              $scope.modals = $modals;
                              $scope.Tasks = TaskService;
+                             $scope.signInFields = {email: null, passwd: null};
 
                              var timeline = TaskService.timeline;
                              
                              $scope.changeDay = function(change) {
                                if ( change==null ) $scope.day = new Date();
-                               else $scope.day.setDate($scope.day.getDate()+change);
-                             };
+                               else $scope.day.setDate($scope.day.getDate()+change);};
 
+                             $scope.logIn = function() {
+                               var f = $scope.signInFields;
+                               $auth.logIn(f.email, f.passwd, f.remember)
+                                 .then(function(respObj) {
+                                         if ( 'errors' in respObj ) {
+                                           console.log(respObj.errors);
+                                           return;
+                                         }                                           
+                                         delete $scope.signInFields;
+                                         $('.welcome').animate(
+                                           {height:'toggle'}, 1000, 'linear',
+                                           function(){$scope.$apply('changeDay()');});});};
 
                              // Day and wake/sleep watchers //
                              
@@ -37,13 +51,12 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal'])
                                                  if ( first.lt($scope.wake) )
                                                    $scope.wake = first.floor();
                                                  if (last.gt($scope.sleep) )
-                                                   $scope.sleep = last.ceil();
-                                               });});
+                                                   $scope.sleep = last.ceil();});},
+                                           true);
                              
                              $scope.$watch('wake+""+sleep', function(v) {
                                              if ( !v ) return;
-                                             $scope.hours = hoursArray($scope.wake, $scope.sleep);
-                                           });
+                                             $scope.hours = hoursArray($scope.wake, $scope.sleep);});
 
                              
                              // Task maniplulation functions //
@@ -63,6 +76,12 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal'])
                         return { restrict: 'E',
                                  templateUrl: 'angular/task.html',
                                  replace: true,
+                                 controller: function($scope) {
+                                   $scope.duration = null;
+                                   $scope.$watch('task.duration',
+                                                 function(d) {$scope.duration = d.toString();},
+                                                 true);
+                                 },
                                  link: function(scope, el) {
                                    var timeDroppable = $('.time-droppable');
                                    var task = scope.task;
@@ -279,4 +298,12 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal'])
              angular.forEach(modalCfgs,
                function(val, key){$modalsProvider.register(key, val);});
              $modalsProvider.appSelector = '[ng-app]';
-           }]);
+           }])
+
+  .run(['$cookieStore', '$rootScope',
+        function($cookieStore, $rootScope) {
+          var userInfo = $cookieStore.get('user_info');
+          if ( userInfo )
+            $rootScope.user = userInfo;
+          ['user_info'].forEach(function(i){$cookieStore.remove(i);});
+        }]);
