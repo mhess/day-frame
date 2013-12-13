@@ -1,6 +1,6 @@
 //= require util
 
-angular.module('tasks', ['rails', 'util'])
+angular.module('tasks', ['util'])
 
   // All operations in this service assume an $apply context
   .service('$tasks',
