@@ -20,7 +20,6 @@ angular.module('bootstrapModal', [])
                 function($document, $compile, $controller, $rootScope, $http, $templateCache, $window) {
                   modalOuter = $(containerHTML).appendTo($document.find(this.appSelector));
                   modalContainer = modalOuter.find('.modal-dialog');
-                  console.log(modalContainer);
                   angular.forEach(modals,
                     function(cfg, name) {
                       cfg.close = function() {

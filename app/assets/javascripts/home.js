@@ -23,12 +23,12 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                  .then(function(respObj) {
                                          if ( 'errors' in respObj ) {
                                            console.log(respObj.errors);
-                                           return;
-                                         }
+                                           return;}
                                          delete $scope.signInFields;
                                          $('.welcome').animate(
                                            {height:'toggle'}, 1000, 'linear',
-                                           function(){$scope.$apply('tasks.changeDay()');});});};
+                                           function(){
+                                             $scope.$apply('tasks.remote(true).changeDay()');});});};
 
                              // Day and wake/sleep watchers //
                              
@@ -179,17 +179,12 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                  }};}])
 
   .directive('timeDroppable', function() {
-               return { restrict: 'C',
-                        link: function(scope, el) {                        
-                          el.droppable(
-                            {drop: function (event, ui) {
-                               //var offset = closest5(ui.offset.top - el.offset().top);
-                               var taskScope = ui.draggable.scope();
-                               taskScope.$apply(
-                                 function(){taskScope.task.update();});
-                             }});
-                        }        
-                      };})
+               return {restrict: 'C',
+                       link: function(scope, el) {                        
+                         el.droppable(
+                           {drop: function (event, ui) {
+                              var taskScope = ui.draggable.scope();
+                              setTimeout(function(){taskScope.$apply('task.update()');});}});}};})
 
   .directive('hourSelect',
              ['$tasks', function($tasks) {
@@ -291,10 +286,12 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
              $modalsProvider.appSelector = '[ng-app]';
            }])
 
-  .run(['$cookieStore', '$rootScope',
-        function($cookieStore, $rootScope) {
+  .run(['$cookieStore', '$rootScope', '$tasks',
+        function($cookieStore, $rootScope, $tasks) {
           var userInfo = $cookieStore.get('user_info');
-          if ( userInfo )
+          if ( userInfo ) {
             $rootScope.user = userInfo;
+            $tasks.remote(true);}
+          $tasks.changeDay();
           ['user_info'].forEach(function(i){$cookieStore.remove(i);});
         }]);

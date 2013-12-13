@@ -4,8 +4,8 @@ angular.module('tasks', ['util'])
 
   // All operations in this service assume an $apply context
   .service('$tasks',
-           ['remoteStore', 'date2day', 'setPixelFactor', 'Time', 'Minutes',
-            function(remoteStore, date2day, setPixelFactor, Time, Minutes) {
+           ['remoteStore', 'localStore', 'date2day', 'setPixelFactor', 'Time', 'Minutes',
+            function(remoteStore, localStore, date2day, setPixelFactor, Time, Minutes) {
               var taskSvc = this,
               taskMap = {},
               serialDay,
@@ -17,7 +17,7 @@ angular.module('tasks', ['util'])
 
               var timeline = this.timeline;
               var backlog = this.backlog;
-              var taskStore = remoteStore;
+              var taskStore = localStore;
 
               setPixelFactor(1);
 
@@ -32,7 +32,10 @@ angular.module('tasks', ['util'])
                 self.setDate(other.getDate());
                 return self;}
               
-              function Task(props){angular.copy(props, this);}           
+              function Task(props){
+                angular.copy(props, this);
+                this.duration = new Minutes(this.duration.min);
+                this.start = this.start ? new Time(this.start.minutes) : null;}
               
               Task.prototype.update = function(mod){
                 var task = this;
@@ -73,6 +76,10 @@ angular.module('tasks', ['util'])
                     function(tasks){
                       tasks.forEach(newTask);
                       timeline.sort(taskCmp);});}
+
+              this.remote = function(bool){
+                taskStore = bool ? remoteStore : localStore;
+                return this;};
               
               this.get = function(tid){return taskMap[tid]; };
 
@@ -84,8 +91,8 @@ angular.module('tasks', ['util'])
 
               this.setDay = function(dateObj){
                 serialDay = date2day(dateObj);
-                backlog.splice(0, this.backlog.length);
-                timeline.splice(0, this.timeline.length);
+                backlog.splice(0, backlog.length);
+                timeline.splice(0, timeline.length);
                 taskMap = {};
                 return query({day: serialDay})
                   .then(function(){mutateDate(taskSvc.date, dateObj);});};
@@ -93,9 +100,6 @@ angular.module('tasks', ['util'])
               this.changeDay = function(delta){
                 if (!delta) return this.setDay(new Date());
                 else return this.setDay(new Date(this.date.getTime()-(delta*oneDay)));};
-              
-              // initialize
-              this.changeDay();
             }])
 
   .service('remoteStore',
@@ -134,4 +138,49 @@ angular.module('tasks', ['util'])
                 return $http.get(path+'.json',{params:params})
                   .then(function(resp){
                           return resp.data.map(deserialize);});};
+            }])
+
+  .service('localStore', 
+           ['$q', 'date2day', 'Minutes', 'Time',
+            function($q, date2day, Minutes, Time){
+              var store = {1:{id:1,day:null,start:null,
+                              priority:2,
+                              title:"Take Gladys for a walk",
+                              duration: new Minutes(30),
+                              description:"Check out the new park down the street."},
+                           2:{id:2,day:null,start:null,
+                              priority:4,
+                              title:"Restock dilithium crystals",
+                              duration: new Minutes(105),
+                              description:"This should give us a 15.4% increase in efficiency."},
+                           3:{id:3,day:null,start:null,
+                              priority:3,
+                              title:"Cook dinner",
+                              duration: new Minutes(60),
+                              description:null}};
+
+              var idCount = 4;
+
+              this.create = function(task){
+                task.id = idCount++;
+                store[task.id] = task;
+                return $q.when(task);};
+
+              this.update = function(task){
+                store[task.id] = angular.copy(task);
+                return $q.when(task);};
+
+              this.delete = function(task){
+                delete store[task.id];
+                return $q.when(null);};
+              
+              this.query = function(params){
+                var result = [];
+                var day = params.day;
+                angular.forEach(
+                  store,
+                  function(task, id){
+                    if ( task.start===null || task.day===day )
+                      result.push(task);});
+                return $q.when(result);};
             }]);

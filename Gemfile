@@ -4,8 +4,6 @@ source 'https://rubygems.org'
 gem 'rails', '4.0.0'
 gem 'devise'
 gem 'angularjs-rails'
-gem 'angularjs-rails-resource'
-gem 'angular-ui-bootstrap-rails'
 gem 'jquery-ui-rails'
 
 # Use sqlite3 as the database for Active Record
