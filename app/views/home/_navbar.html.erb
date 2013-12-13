@@ -1,10 +1,10 @@
 <nav class="navbar navbar-default">
   <div class="navbar-header">
     <p class="navbar-text">
-      <a class="glyphicon glyphicon-chevron-left" ng-click="changeDay(-1)"></a>
-      {{day | date:"longDate"}}
-      <a class="glyphicon glyphicon-chevron-right" ng-click="changeDay(1)"></a>
-      <a ng-click="changeDay()">today</a>
+      <a class="glyphicon glyphicon-chevron-left" ng-click="tasks.changeDay(-1)"></a>
+      {{tasks.date | date:"longDate"}}
+      <a class="glyphicon glyphicon-chevron-right" ng-click="tasks.changeDay(1)"></a>
+      <a ng-click="tasks.changeDay()">today</a>
     </p>
   <div class="navbar-right">
     <a class="btn btn-info navbar-btn" ng-click="logOut()">Log Out</a>

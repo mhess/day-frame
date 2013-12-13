@@ -77,9 +77,9 @@ Time.prototype.diff = function(other) {
 // Minutes Constructor
 function Minutes(minOrHour, min) {
   if (min===undefined) {
-    this.min = parseInt(minOrHour);
+    this.min = parseInt(minOrHour,10);
   } else {
-    this.min = (parseInt(minOrHour || 0) * 60) + parseInt(min || 0);
+    this.min = (parseInt(minOrHour || 0) * 60,10) + parseInt(min || 0,10);
   }    
 }
 Minutes.prototype.withHrs = function()  {

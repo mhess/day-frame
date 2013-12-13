@@ -1,18 +1,21 @@
 //= require util
 //= require angularjs/rails/resource
 
-angular.module('taskServices', ['rails', 'util'])
-// The operations in the factory assume an $apply context
+angular.module('tasks', ['rails', 'util'])
 
-  .service('TaskService',
+  // All operations in this service assume an $apply context
+  .service('$tasks',
            ['railsResourceFactory', 'date2day', 'setPixelFactor', 'Time', 'Minutes',
             function(railsResourceFactory, date2day, setPixelFactor, Time, Minutes) {
               var taskSrvObj = this,
               taskMap = {},
-              day;
+              serialDay,
+              oneDay = 1000*60*60*24;
               
               this.timeline = [];
-              this.backlog = [];                   
+              this.backlog = [];
+              this.date = new Date();
+
               var timeline = this.timeline;
               var backlog = this.backlog;
 
@@ -21,17 +24,24 @@ angular.module('taskServices', ['rails', 'util'])
               function taskCmp(t1,t2){
                 if ( t1.start.lt(t2.start) ) return -1;
                 if ( t1.start.gt(t2.start) ) return 1;
-                return 0;
-              }
+                return 0;}
 
-              var TaskRes = railsResourceFactory({ url: "/tasks", name: "task"});
+              function mutateDate(self, other) {
+                self.setFullYear(other.getFullYear());
+                self.setMonth(other.getMonth());
+                self.setDate(other.getDate());
+                return self;}
+
+              var RealTaskRes = railsResourceFactory({url: "/tasks", name: "task"});
+              var TaskRes = RealTaskRes;
+              
 
               // Grab original resource update method                
               var resUpdate = TaskRes.prototype.update;
               TaskRes.prototype.update = function(mod) {              
                 var task = this;
                 mod && angular.extend(task, mod);
-                task.day = task.start===null ? null : day;
+                task.day = task.start===null ? null : serialDay;
                 if ( task.start===null ) {
                   var tindex = timeline.indexOf(task);
                   tindex > -1 && timeline.splice(tindex, 1);
@@ -91,17 +101,23 @@ angular.module('taskServices', ['rails', 'util'])
                   taskProps.day = day;
                 new TaskRes(taskProps).create()
                   .then(function(task) { taskFromServ(task); },
-                        function() { alert("Task creation failed"); });
-              };
+                        function() { alert("Task creation failed");});};
 
               this.setDay = function(dateObj) {
-                day = date2day(dateObj);
+                serialDay = date2day(dateObj);
                 this.backlog.splice(0, this.backlog.length);
                 this.timeline.splice(0, this.timeline.length);
                 taskMap = {};
-                return TaskRes.query({day: day})
-                  .then(function(res) { res.forEach(taskFromServ);
-                                        taskSrvObj.timeline.sort(taskCmp);
-                                      });
-              };
+                return TaskRes.query({day: serialDay})
+                  .then(function(res){
+                          mutateDate(taskSrvObj.date, dateObj);
+                          res.forEach(taskFromServ);
+                          taskSrvObj.timeline.sort(taskCmp);});};
+
+              this.changeDay = function(delta){
+                if (!delta) return this.setDay(new Date());
+                else return this.setDay(new Date(this.date.getTime()-(delta*oneDay)));};
+              
+              // initialize
+              this.changeDay();
             }]);

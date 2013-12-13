@@ -8,22 +8,15 @@
 //= require modal
 //= require auth
 
-var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
+var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
 
-  .controller('viewCtrl', ['$scope', 'TaskService', 'hoursArray', 'Time', '$modals', '$window', '$auth',
-                           function($scope, TaskService, hoursArray, Time, $modals, $window, $auth) {
-                             // State for this controller
-                             $scope.day = new Date();
+  .controller('viewCtrl', ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$window', '$auth',
+                           function($scope, $tasks, hoursArray, Time, $modals, $window, $auth) {
+                             var timeline = $tasks.timeline;
                              $scope.modals = $modals;
-                             $scope.Tasks = TaskService;
+                             $scope.tasks = $tasks;
                              $scope.signInFields = {email: null, passwd: null};
-
-                             var timeline = TaskService.timeline;
                              
-                             $scope.changeDay = function(change) {
-                               if ( change==null ) $scope.day = new Date();
-                               else $scope.day.setDate($scope.day.getDate()+change);};
-
                              $scope.logIn = function() {
                                var f = $scope.signInFields;
                                $auth.logIn(f.email, f.passwd, f.remember)
@@ -31,27 +24,25 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth
                                          if ( 'errors' in respObj ) {
                                            console.log(respObj.errors);
                                            return;
-                                         }                                           
+                                         }
                                          delete $scope.signInFields;
                                          $('.welcome').animate(
                                            {height:'toggle'}, 1000, 'linear',
-                                           function(){$scope.$apply('changeDay()');});});};
+                                           function(){$scope.$apply('tasks.changeDay()');});});};
 
                              // Day and wake/sleep watchers //
                              
-                             $scope.$watch('day',
-                                           function(day) {
-                                             TaskService.setDay(day).then(
-                                               function() {
-                                                 $scope.wake = new Time('7:00');
-                                                 $scope.sleep = new Time('22:00');
-                                                 if ( !timeline.length ) return;
-                                                 var first = timeline[0].start;
-                                                 var last = timeline[timeline.length-1].start;
-                                                 if ( first.lt($scope.wake) )
-                                                   $scope.wake = first.floor();
-                                                 if (last.gt($scope.sleep) )
-                                                   $scope.sleep = last.ceil();});},
+                             $scope.$watch('tasks.date',
+                                           function() {
+                                             $scope.wake = new Time('7:00');
+                                             $scope.sleep = new Time('22:00');
+                                             if ( !timeline.length ) return;
+                                             var first = timeline[0].start;
+                                             var last = timeline[timeline.length-1].start;
+                                             if ( first.lt($scope.wake) )
+                                               $scope.wake = first.floor();
+                                             if (last.gt($scope.sleep) )
+                                               $scope.sleep = last.ceil();},
                                            true);
                              
                              $scope.$watch('wake+""+sleep', function(v) {
@@ -201,8 +192,8 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth
                       };})
 
   .directive('hourSelect',
-             ['TaskService', function(TaskService) {
-                var timeline = TaskService.timeline;
+             ['$tasks', function($tasks) {
+                var timeline = $tasks.timeline;
                 return { scope: { time: '=hourSelect', which: '@hourSelect' },
                          templateUrl: 'angular/hour_select.html',
                          controller: function($scope) {
@@ -220,8 +211,8 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth
                              $scope.time.addIn(-60);};
                          }};}])
 
-  .controller('taskModalCtrl', ['$scope', '$close', 'Time', 'Minutes', 'TaskService',
-                                function($scope, $close, Time, Minutes, ts) {
+  .controller('taskModalCtrl', ['$scope', '$close', 'Time', 'Minutes', '$tasks',
+                                function($scope, $close, Time, Minutes, $tasks) {
                 $scope.tmpl = {};
                 $scope.dur = {hr: null, min: null};
                 $scope.invalid = false;
@@ -270,10 +261,10 @@ var app = angular.module("app", ['taskServices', 'util', 'bootstrapModal', 'auth
                   tmpl.priority = parseInt(tmpl.priority);
                   // Editing existing task
                   if ( 'id' in tmpl ) {
-                    ts.get(tmpl.id).update($scope.tmpl);
+                    $tasks.get(tmpl.id).update($scope.tmpl);
                     // Creat new task
                   } else {
-                    ts.create(tmpl);
+                    $tasks.create(tmpl);
                   }
                   $close();
                 };
