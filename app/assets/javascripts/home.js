@@ -131,7 +131,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                                    start: function(){scope.resize=true;},
                                                    stop: function(){
                                                      scope.$apply(
-                                                       function() {task.save(); scope.resize=false;});
+                                                       function() {task.update(); scope.resize=false;});
                                                    }});
                                    } else {
                                      el.draggable(

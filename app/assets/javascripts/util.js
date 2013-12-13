@@ -79,14 +79,14 @@ function Minutes(minOrHour, min) {
   if (min===undefined) {
     this.min = parseInt(minOrHour,10);
   } else {
-    this.min = (parseInt(minOrHour || 0) * 60,10) + parseInt(min || 0,10);
+    this.min = (parseInt(minOrHour || 0,10) * 60) + parseInt(min || 0,10);
   }    
 }
 Minutes.prototype.withHrs = function()  {
   var hr = Math.floor(this.min / 60),
       min = this.min % 60;
   return {hr: hr, min: min};
-}
+};
 Minutes.prototype.fromPx = function(pixels) {
   this.min = pixels / pixelFactor;
 };
