@@ -59,9 +59,7 @@ a:hover { text-decoration: none; }
 }
 
 .snap {
-  &:not(:first-child) {
-    border-top: 1px solid lighten(gray, 40%);
-  }
+  &:not(:first-child) { border-top: 1px solid lighten(gray, 40%); }
   height: $hour-height / 4;
   width: 100%;
 }
@@ -71,13 +69,13 @@ a:hover { text-decoration: none; }
 
 .widget-area {
   padding: 5px;
-  position: fixed;
   float: right;
-  right: 0px;
-  top: 0px;
   max-width: 500px;
 
-  .demo & { position: relative; }
+  &.fixed-top { 
+    position: fixed;
+    top: 0; right: 0;
+  }
 }
 
 .navbar,.panel {

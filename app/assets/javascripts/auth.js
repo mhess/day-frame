@@ -11,6 +11,7 @@ angular.module('auth', [])
               this.registerPath = '/users/sign_up.json'; //config.registerPath;
               this.signOutPath = '/users/sign_out';
               //};
+              this.user = null;
               this.logIn = function(email, pass, rem) {
                 var rem = rem ? 1 : 0,
                     postData = {remote: true,
@@ -23,13 +24,12 @@ angular.module('auth', [])
                   .then(
                     function(resp) {
                       if ( 'name' in resp.data )
-                        $rootScope.user = resp.data;
+                        this.user = resp.data;
                       return resp.data;});
               };
               this.logOut = function(){
                 return $http.delete(this.signOutPath, {headers: headers})
-                .then(function(data){$window.location.reload();});
-              };
+                .then(function(data){$window.location.reload();});};
 
               $rootScope.logOut = function(){that.logOut();};
             }]);

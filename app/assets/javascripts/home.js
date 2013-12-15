@@ -12,8 +12,8 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
 
   .controller('viewCtrl', ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$window', '$auth',
                            function($scope, $tasks, hoursArray, Time, $modals, $window, $auth) {
-                             var timeline = $tasks.timeline;
                              $scope.modals = $modals;
+                             $scope.auth = $auth;
                              $scope.tasks = $tasks;
                              $scope.signInFields = {email: null, passwd: null};
                              
@@ -28,10 +28,13 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                          $('.welcome').animate(
                                            {height:'toggle'}, 1000, 'linear',
                                            function(){
-                                             $scope.$apply('tasks.remote(true).changeDay()');});});};
+                                             $scope.$apply(function(){
+                                               $tasks.remote(true).changeDay();
+                                               $scope.$broadcast('fixWidgetArea');});});});};
 
                              // Day and wake/sleep watchers //
-                             
+
+                             var timeline = $tasks.timeline;                             
                              $scope.$watch('tasks.date',
                                            function() {
                                              $scope.wake = new Time('7:00');
@@ -265,6 +268,32 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                 };
               }])
 
+  .directive('widgetArea',
+    ['$auth',
+      function($auth){
+        return {restrict: 'C',
+          link: function($scope, $el){
+            var $window = $(window);
+            var fixedClass = 'fixed-top';
+            if ( $auth.user ){
+              $el.addClass('fixed-top');
+              $window.off('scroll.fixWidgetArea');
+            // Affix logic
+            } else {
+              var fixed = false;
+              var top = $el.offset().top;
+              $window.on('scroll.fixWidgetArea', function(){
+                if ( fixed ) {
+                  if ( $window.scrollTop() < top ){
+                    fixed = false;
+                    $el.removeClass(fixedClass);}
+                  } else if ( $window.scrollTop() >= top ){
+                    fixed = true;
+                    $el.addClass(fixedClass);}});}
+            $scope.$on('fixWidgetArea', function(){
+              $el.addClass(fixedClass);
+              $window.off('scroll.fixWidgetArea');});}};}])
+
   .constant('modalCfgs', {task: {tmplUrl: 'angular/task_modal.html',
                                  ctrl: 'taskModalCtrl',
                                  open: function(t) {
@@ -286,11 +315,11 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
              $modalsProvider.appSelector = '[ng-app]';
            }])
 
-  .run(['$cookieStore', '$rootScope', '$tasks',
-        function($cookieStore, $rootScope, $tasks) {
+  .run(['$cookieStore', '$auth', '$tasks',
+        function($cookieStore, $auth, $tasks) {
           var userInfo = $cookieStore.get('user_info');
           if ( userInfo ) {
-            $rootScope.user = userInfo;
+            $auth.user = userInfo;
             $tasks.remote(true);}
           $tasks.changeDay();
           ['user_info'].forEach(function(i){$cookieStore.remove(i);});
