@@ -48,7 +48,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         .then(
           function(resp){
             this.user = resp.data;
-            return resp.data);},
+            return resp.data;},
           function(resp){throw resp.data;});};
 
     this.logOut = function(){
