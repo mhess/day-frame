@@ -25,6 +25,6 @@ class SessionsController < Devise::SessionsController
   end
  
   def failure
-    render json: {errors: ['bad email/password']}
+    render status: 422, json: {errors: ['bad email/password']}
   end
 end

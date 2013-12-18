@@ -20,17 +20,13 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                              $scope.logIn = function() {
                                var f = $scope.signInFields;
                                $auth.logIn(f.email, f.passwd, f.remember)
-                                 .then(function(respObj) {
-                                         if ( 'errors' in respObj ) {
-                                           console.log(respObj.errors);
-                                           return;}
-                                         delete $scope.signInFields;
-                                         $('.welcome').animate(
-                                           {height:'toggle'}, 1000, 'linear',
-                                           function(){
-                                             $scope.$apply(function(){
-                                               $tasks.remote(true).changeDay();
-                                               $scope.$broadcast('fixWidgetArea');});});});};
+                                 .then(
+                                  function(){$auth.logInTransition();},
+                                  function(respObj) {
+                                    if ( 'errors' in respObj ) {
+                                      console.log(respObj.errors);
+                                      return;}
+                                    delete $scope.signInFields;})};
 
                              // Day and wake/sleep watchers //
 
@@ -268,6 +264,57 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                 };
               }])
 
+  .controller('signUpModalCtrl',
+    ['$scope', '$auth', '$close', 
+      function($scope, $auth, $close){
+        $scope.invalid = true;
+        $scope.submitError = false;
+        var u = $scope.user = {
+          name:null, email:null, passwd:null,
+          passwordCnf:null};
+
+        $scope.errors = {name:null, email:null, 
+          passwd:null, passwdCnf:null};
+
+        var errs = $scope.errors;
+
+        $scope.$watchCollection('user', function(u){
+          if ( !u.name && $scope.form.name.$dirty )
+            errs.name = "Name is required!";
+          else errs.name = null;
+
+          if ( !u.email && $scope.form.email.$dirty )
+            errs.email = "Email is invalid!";
+          else errs.email = null;
+
+          if ( $scope.form.passwd.$dirty ) {
+            if ( u.passwd.length < 8 ) {
+              errs.passwd = "Password must be at least 8 characters!";
+            } else errs.passwd = null;
+          }
+
+          if ( $scope.form.passwdCnf.$dirty ) {
+            if ( u.passwd !== u.passwdCnf )
+              errs.passwdCnf = "Passwords must match!";
+            else errs.passwdCnf = null;
+          }
+
+          for ( var k in errs ){
+            if ( errs[k] || !u[k] ){$scope.invalid = true; return;}}
+          $scope.invalid = false;});
+
+        $scope.close = $close;
+        $scope.signUp = function(){
+          $auth.signUp(u).then(
+            function(){
+              $close();
+              $auth.logInTransition();}, 
+            function(errors){
+              $scope.submitError = true;
+              angular.forEach(errors, function(v,k) {
+                errs[k] = "This "+k+" "+v+".";});});};
+      }])
+
   .directive('widgetArea',
     ['$auth',
       function($auth){
@@ -305,8 +352,11 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                    tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
                                    scopeExt.tmpl = tmpl;
                                    return scopeExt;
-                                 }}
-                         })
+                                 }},
+                          signUp: {tmplUrl: 'angular/signup_modal.html',
+                                   ctrl: 'signUpModalCtrl',
+                                   open: angular.noop}
+            })
 
   .config(['$modalsProvider', 'modalCfgs',
            function($modalsProvider, modalCfgs) {

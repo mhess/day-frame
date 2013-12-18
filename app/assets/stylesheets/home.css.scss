@@ -188,6 +188,13 @@ a:hover { text-decoration: none; }
 
 // Modals //
 
+.help-block{
+  margin-top: 3px;
+  margin-bottom: 0;
+  height: 12px;
+  font-size: 12px;
+}
+
 .task-modal {
   .form-horizontal {
     .title input {
@@ -216,12 +223,6 @@ a:hover { text-decoration: none; }
           margin-left: 15px;
         }
       }
-    }
-    .help-block{
-      margin-top: 3px;
-      margin-bottom: 0;
-      height: 12px;
-      font-size: 12px;
     }
     label {
       vertical-align: top;
