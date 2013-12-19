@@ -28,9 +28,12 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         utf8: "✓",
         user: null};
 
-    this.logIn = function(email, pass, rem) {
-      var rem = rem ? 1 : 0;
-      postData.user = {email: email, password: pass, remember: rem};
+    this.logIn = function(fields) {
+      fields.rem = fields.rem ? 1 : 0;
+      postData.user = {
+        email: fields.email, 
+        password: fields.passwd, 
+        remember: fields.rem};
       postData.commit = "Sign in";
       return $http.post(this.logInPath, postData)
         .then(
@@ -52,10 +55,10 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
           function(resp){return $q.reject(resp.data);});};
 
     this.logOut = function(){
-      return $http.delete(that.signOutPath)
-        .then(function(data){$window.location.reload();});};
+      return $http.delete(that.signOutPath);};
 
     this.unauthenticated = function(){
-      console.log('unauthenticated!');
-      return $q.reject();};
+      // return $modals.logIn()
+      //   .catch(function(){window.location.reload();});
+      };
   }]);

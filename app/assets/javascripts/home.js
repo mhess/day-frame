@@ -18,8 +18,8 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                              $scope.signInFields = {email: null, passwd: null};
                              
                              $scope.logIn = function() {
-                               var f = $scope.signInFields;
-                               $auth.logIn(f.email, f.passwd, f.remember)
+                               var fields = $scope.signInFields;
+                               $auth.logIn(fields)
                                  .then(
                                   function(){$auth.logInTransition();},
                                   function(respObj) {
@@ -315,6 +315,44 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                 errs[k] = "This "+k+" "+v+".";});});};
       }])
 
+  .controller('logInModalCtrl', 
+    ['$scope', '$auth', '$close', 
+      function($scope, $auth, $close){
+        $scope.invalid = true;
+        $scope.submitError = false;
+        var fields = $scope.fields = {email:null, passwd:null};
+
+        var errs = $scope.errors = {email:null, passwd:null};
+
+        $scope.$watchCollection('fields', function(f){
+          if ( !fields.email && $scope.form.email.$dirty )
+            errs.email = "Email is invalid!";
+          else errs.email = null;
+
+          if ( $scope.form.passwd.$dirty ) {
+            if ( fields.passwd.length < 8 ) {
+              errs.passwd = "Password must be at least 8 characters!";
+            } else errs.passwd = null;
+          }
+
+          for ( var k in errs ){
+            if ( errs[k] || !fields[k] ){$scope.invalid = true; return;}}
+          $scope.invalid = false;});
+
+        $scope.close = $close;
+
+        $scope.logIn = function(){
+          $auth.logOut()
+            .then(
+              function(){return $auth.logIn(fields);})
+            .then(
+              function(){$close();}, 
+              function(errors){
+                $scope.submitError = true;
+                angular.forEach(errors, function(v,k){
+                  errs[k] = "This "+k+" "+v+".";});});};
+      }])
+
   .directive('widgetArea',
     ['$auth',
       function($auth){
@@ -355,6 +393,9 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                  }},
                           signUp: {tmplUrl: 'angular/signup_modal.html',
                                    ctrl: 'signUpModalCtrl',
+                                   open: angular.noop},
+                          logIn: {tmplUrl: 'angular/login_modal.html',
+                                   ctrl: 'logInModalCtrl',
                                    open: angular.noop}
             })
 
@@ -376,16 +417,14 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                     return $q.when(config)},
                   responseError: function(resp){
                     if ( resp.status===401 && !resp.config.ignored ) {
-                      // Ignore response from all pending requests
-                      $inj.get('$http').pendingRequests
-                        .forEach(function(cfg){
-                          cfg.ignored=true;
-                        });
-                      return $inj.get('$auth').unauthenticated()
-                        .then(
-                          function(){
-                            return $inj.get('$http')(reqConfig);},
-                          function(){return $q.reject(resp);});}  
+                      // // Ignore response from all pending requests
+                      // $inj.get('$http').pendingRequests
+                      //   .forEach(function(cfg){
+                      //     cfg.ignored=true;});
+                      // return $inj.get('$auth').unauthenticated()
+                      //   .then(function(){
+                      //     return $inj.get('$http')(reqConfig);});
+                      window.location.reload();}  
                     return $q.reject(resp);}};
               }]);
            }])
@@ -398,5 +437,6 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
             $tasks.remote(true);}
           $tasks.changeDay();
           ['user_info'].forEach(function(i){$cookieStore.remove(i);});
-          $rootScope.logOut = $auth.logOut;
+          $rootScope.logOut = function(){$auth.logOut()
+            .then(function(){window.location.reload()});};
         }]);

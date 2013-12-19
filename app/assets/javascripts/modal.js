@@ -16,30 +16,32 @@ angular.module('bootstrapModal', [])
               var modalService = {};
 
               this.$get = ['$document', '$compile', '$controller', '$rootScope',
-                           '$http', '$templateCache', '$window',
-                function($document, $compile, $controller, $rootScope, $http, $templateCache, $window) {
+                           '$http', '$templateCache', '$window', '$q',
+                function($document, $compile, $controller, $rootScope, $http, $templateCache, $window, $q) {
                   modalOuter = $(containerHTML).appendTo($document.find(this.appSelector));
                   modalContainer = modalOuter.find('.modal-dialog');
                   angular.forEach(modals,
                     function(cfg, name) {
-                      cfg.close = function() {
+                      cfg.close = function(val, err) {
                         modalOuter.modal('hide');
                         cfg.content.remove();
-                        cfg.scope.$destroy();};
+                        cfg.scope.$destroy();
+                        if ( err ) cfg.deferred.reject(val);
+                        else cfg.deferred.resolve(val);};
                       modalService[name] = function(args) {
+                        cfg.deferred = $q.defer();
                         $http.get(cfg.tmplUrl, {cache: $templateCache})
-                          .then(function(resp){
+                          .then(
+                            function(resp){
                               // Create a new scope and instantiate new controller for each call
                               cfg.scope = $rootScope.$new();
                               cfg.content = $compile(resp.data)(cfg.scope);
                               $controller(cfg.ctrl, {$scope: cfg.scope, $close: cfg.close});
                               angular.extend(cfg.scope, cfg.open(args));
                               modalContainer.append(cfg.content);
-                              modalOuter.modal('show');
-                            },
-                            function(){$window.alert('Loading modal template failed: '+cfg.tmplUrl);}
-                          );};
-                      });
+                              modalOuter.modal('show');},
+                            function(){$window.alert('Loading modal template failed: '+cfg.tmplUrl);});
+                          return cfg.deferred.promise;};});
                   return modalService;
                 }];
             });
