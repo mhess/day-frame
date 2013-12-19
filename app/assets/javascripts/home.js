@@ -358,19 +358,45 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                    open: angular.noop}
             })
 
-  .config(['$modalsProvider', 'modalCfgs',
-           function($modalsProvider, modalCfgs) {
+  .config(['$modalsProvider', 'modalCfgs', '$httpProvider',
+
+           // Configure modals
+           function($modalsProvider, modalCfgs, $httpProvider) {
              angular.forEach(modalCfgs,
                function(val, key){$modalsProvider.register(key, val);});
              $modalsProvider.appSelector = '[ng-app]';
+
+             // Add interceptor for unauthenticated requests.
+             $httpProvider.interceptors.push(
+              ['$q', '$injector', function($q, $inj){
+                var reqConfig;
+                return {
+                  request: function(config){
+                    reqConfig = config;
+                    return $q.when(config)},
+                  responseError: function(resp){
+                    if ( resp.status===401 && !resp.config.ignored ) {
+                      // Ignore response from all pending requests
+                      $inj.get('$http').pendingRequests
+                        .forEach(function(cfg){
+                          cfg.ignored=true;
+                        });
+                      return $inj.get('$auth').unauthenticated()
+                        .then(
+                          function(){
+                            return $inj.get('$http')(reqConfig);},
+                          function(){return $q.reject(resp);});}  
+                    return $q.reject(resp);}};
+              }]);
            }])
 
-  .run(['$cookieStore', '$auth', '$tasks',
-        function($cookieStore, $auth, $tasks) {
+  .run(['$cookieStore', '$auth', '$tasks', '$rootScope',
+        function($cookieStore, $auth, $tasks, $rootScope) {
           var userInfo = $cookieStore.get('user_info');
           if ( userInfo ) {
             $auth.user = userInfo;
             $tasks.remote(true);}
           $tasks.changeDay();
           ['user_info'].forEach(function(i){$cookieStore.remove(i);});
+          $rootScope.logOut = $auth.logOut;
         }]);

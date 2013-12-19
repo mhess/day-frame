@@ -3,8 +3,8 @@
 
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
-  ['$http', '$rootScope', '$window', '$modals', '$tasks',
-  function($http, $rootScope, $window, $modals, $tasks) {
+  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q',
+  function($http, $rootScope, $window, $modals, $tasks, $q) {
 
     var that = this;
     var $welcome = $('.welcome');
@@ -49,9 +49,13 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
           function(resp){
             this.user = resp.data;
             return resp.data;},
-          function(resp){throw resp.data;});};
+          function(resp){return $q.reject(resp.data);});};
 
     this.logOut = function(){
-      return $http.delete(this.signOutPath)
+      return $http.delete(that.signOutPath)
         .then(function(data){$window.location.reload();});};
+
+    this.unauthenticated = function(){
+      console.log('unauthenticated!');
+      return $q.reject();};
   }]);
