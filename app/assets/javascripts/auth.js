@@ -10,8 +10,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
     var $welcome = $('.welcome');
 
     this.logInTransition = function(){
-      $welcome.animate(
-        {height:'toggle'}, 1000, 'linear',
+      $welcome.slideUp(1000,
         function(){
           $rootScope.$apply(function(){
             $tasks.remote(true).changeDay();
