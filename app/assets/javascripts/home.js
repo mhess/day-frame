@@ -7,6 +7,9 @@
 //= require task_services
 //= require modal
 //= require auth
+//= require bootstrap/dropdown
+
+var oneDay = 1000*60*60*24;
 
 var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
 
@@ -16,6 +19,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                              $scope.auth = $auth;
                              $scope.tasks = $tasks;
                              $scope.signInFields = {email: null, passwd: null};
+                             $scope.dayText = "That's";
                              
                              $scope.logIn = function() {
                                var fields = $scope.signInFields;
@@ -30,9 +34,25 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
 
                              // Day and wake/sleep watchers //
 
+
+                             var dayPosition = 0;
                              var timeline = $tasks.timeline;                             
                              $scope.$watch('tasks.date',
-                                           function() {
+                                           function(newDay, oldDay) {
+                                            // Update dayText
+                                             var delta = Math.round((newDay.getTime()-(new Date()).getTime())/oneDay);
+                                             console.log(delta);
+                                             var dayText = "That's";
+                                             var count, prep;
+                                             if ( delta ) {
+                                               count = Math.abs(delta);
+                                               prep = delta < 0 ? "before" : "after";
+                                               plural = count > 1 ? "s " : ' ';
+                                               dayText = count+" "+" day"+plural+prep;
+                                             }
+                                             $scope.dayText = dayText;
+
+                                             // Set wake/sleep based on assigned tasks for this day.
                                              $scope.wake = new Time('7:00');
                                              $scope.sleep = new Time('22:00');
                                              if ( !timeline.length ) return;
@@ -41,7 +61,8 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                              if ( first.lt($scope.wake) )
                                                $scope.wake = first.floor();
                                              if (last.gt($scope.sleep) )
-                                               $scope.sleep = last.ceil();},
+                                               $scope.sleep = last.ceil();
+                                           },
                                            true);
                              
                              $scope.$watch('wake+""+sleep', function(v) {
@@ -360,7 +381,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
           link: function($scope, $el){
             var $window = $(window);
             var fixedClass = 'fixed-top';
-            if ( $auth.user ){
+            if ( !$scope.welcome ){
               $el.addClass('fixed-top');
               $window.off('scroll.fixWidgetArea');
             // Affix logic
@@ -431,12 +452,19 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
 
   .run(['$cookieStore', '$auth', '$tasks', '$rootScope',
         function($cookieStore, $auth, $tasks, $rootScope) {
+
+          // Grab user info from cookie if logged in.
           var userInfo = $cookieStore.get('user_info');
           if ( userInfo ) {
             $auth.user = userInfo;
             $tasks.remote(true);}
           $tasks.changeDay();
+          $rootScope.welcome = !userInfo;
+
+          // Delete user info from cookie
           ['user_info'].forEach(function(i){$cookieStore.remove(i);});
+
+          // Attach logout function to rootScope.
           $rootScope.logOut = function(){$auth.logOut()
             .then(function(){window.location.reload()});};
         }]);

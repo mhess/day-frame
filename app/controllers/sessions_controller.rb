@@ -21,7 +21,7 @@ class SessionsController < Devise::SessionsController
     scope = Devise::Mapping.find_scope!(resource_or_scope)
     resource ||= resource_or_scope
     sign_in(scope, resource) unless warden.user(scope) == resource
-    render json: resource.attributes.slice(:name, :sleep, :wake)
+    render json: resource.attributes.slice("name", "sleep", "wake")
   end
  
   def failure

@@ -14,7 +14,8 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         function(){
           $rootScope.$apply(function(){
             $tasks.remote(true).changeDay();
-            $rootScope.$broadcast('fixWidgetArea');});});}
+            $rootScope.$broadcast('fixWidgetArea');
+            $rootScope.welcome = false;});});}
 
     this.logInPath = '/users/sign_in.json'; //config.signInPath;
     this.registerPath = '/users.json'; //config.registerPath;
@@ -37,7 +38,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.post(this.logInPath, postData)
         .then(
           function(resp){
-            this.user = resp.data;
+            that.user = resp.data;
             return resp.data;},
           function(resp){throw resp.data;});};
 

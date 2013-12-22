@@ -8,6 +8,7 @@ $color-pri-3: #BDF1FC;
 $color-pri-4: #D3E6DC;
 $hour-height: 60px;
 $list-padding: 15px;
+$panel-width: 440px;
 
 /* Undo bootstrap styling */
 body {
@@ -82,25 +83,53 @@ a:hover { text-decoration: none; }
   margin: 5px;
   float: left;
 }
+
 .navbar {
-  padding: 0px 10px;
+  width: $panel-width;
+  padding: 10px;
   
   .navbar-text {
     font-size: 16px;
     vertical-align: middle;
-    
-    a {
-      margin-left: 10px;
-      margin-right: 10px;
-    }
   }
+}
+.navbar-text {
+  display: inline-block;
+  margin: 0; 
+}
+
+.navbar-btn {
+  margin: 0;
+  div {float: left;}
+}
+
+.navbar-name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 65px;
+}
+
+.day-widget {
+  margin: 0 10px 3px 10px;
+}
+
+.day-info {
+  font-size: 12px;
+  font-style: italic;
+}
+
+.dropdown-menu { 
+  text-align: left;
+  min-width: initial;
 }
 
 .task-list {
-  
+  width: $panel-width;
+
   .panel-body {
     padding: 10px;
-    width: $task-width + 35px;
+    //width: $task-width + 35px;
     max-height: 300px;
     overflow-y: scroll;
   }
