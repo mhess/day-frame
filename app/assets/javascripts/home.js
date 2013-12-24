@@ -41,7 +41,6 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                            function(newDay, oldDay) {
                                             // Update dayText
                                              var delta = Math.round((newDay.getTime()-(new Date()).getTime())/oneDay);
-                                             console.log(delta);
                                              var dayText = "That's";
                                              var count, prep;
                                              if ( delta ) {
@@ -130,18 +129,15 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                    scope.getClass = function (){
                                      var val = 'pri-'+task.priority,
                                        height = el.height();
-                                     if ( height < (6+28) ) {
-                                       val += ' single-line';
-                                     }
-                                     if (task.start===null)
-                                       val += ' clearfix';
+                                     if ( height < (6+28) ) val += ' single-line';
+                                     if ( task.start===null ) val += ' clearfix';
+                                     if ( scope.drag ) val += ' drag';
                                      return val;
                                    };
                                    
                                    // Set CSS/draggable based on whether assigned or not
                                    if (task.start!==null) {
-                                     el.draggable({stack: true,
-                                                   containment:'.time-droppable'});
+                                     el.draggable({containment:'.time-droppable'});
                                      el.resizable({handles: 's', grid: [0, 5],
                                                    containment:'parent',
                                                    resize: function(e,ui){
@@ -169,17 +165,16 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                    
                                    // Drag config for both types of tasks.
                                    el.draggable(
-                                     {snap: ".snap",
+                                     {cancel: '.control',
+                                      snap: ".snap",
                                       snapMode: "inner",
                                       snapTolerance: 25,
                                       revert: 'invalid',
                                       start: function(){
-                                        if ( task.start===null )
-                                          el.hide();
+                                        if ( task.start===null ) el.hide();
                                         scope.$apply('drag=true'); },
                                       stop: function(){
-                                        if ( task.start===null )
-                                          el.show();
+                                        if ( task.start===null ) el.show();
                                         scope.$apply('drag=false'); },
                                       drag: function(e, ui) {
                                         var dLeft = ui.offset.left,

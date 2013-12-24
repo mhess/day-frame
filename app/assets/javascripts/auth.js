@@ -10,12 +10,15 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
     var $welcome = $('.welcome');
 
     this.logInTransition = function(){
+      var deferred = $q.defer();
       $welcome.slideUp(1000,
         function(){
           $rootScope.$apply(function(){
             $tasks.remote(true).changeDay();
             $rootScope.$broadcast('fixWidgetArea');
-            $rootScope.welcome = false;});});}
+            $rootScope.welcome = false;});
+            deferred.resolve();});
+      return deferred.promise;}
 
     this.logInPath = '/users/sign_in.json'; //config.signInPath;
     this.registerPath = '/users.json'; //config.registerPath;
@@ -50,7 +53,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.post(this.registerPath, postData)
         .then(
           function(resp){
-            this.user = resp.data;
+            that.user = resp.data;
             return resp.data;},
           function(resp){return $q.reject(resp.data);});};
 

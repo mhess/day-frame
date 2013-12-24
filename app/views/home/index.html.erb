@@ -40,6 +40,7 @@
         </div>
         <div class="panel-body">
           <task ng-repeat="task in tasks.backlog | orderBy:'priority'"></task>
+          <div class="no-tasks" ng-hide="tasks.backlog.length">No tasks in backlog.</div>
         </div>
       </div>
 

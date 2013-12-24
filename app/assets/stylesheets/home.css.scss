@@ -66,7 +66,7 @@ a:hover { text-decoration: none; }
 }
 
 
-// User Control Panel //
+// Widget Area //
 
 .widget-area {
   padding: 5px;
@@ -152,6 +152,7 @@ a:hover { text-decoration: none; }
   @include box-sizing(border-box);
   @include single-box-shadow($inset: true);
   border-radius: 5px;
+  z-index: 0;
   
   .timeline & {
     position: absolute;
@@ -200,7 +201,12 @@ a:hover { text-decoration: none; }
     span:hover { color: $link-color; }
   }
 
-  &:hover .control{ display: initial; }
+  &:hover {
+    z-index: 1;
+    .control { display: initial; }
+  }
+
+  &.drag { z-index: 2;}
   
   &.pri-1 {background-color: $color-pri-1;}
   &.pri-2 {background-color: $color-pri-2;}
@@ -276,6 +282,12 @@ a:hover { text-decoration: none; }
     padding: 0;
     [hour-select]:first-child { border-bottom: 1px solid #ddd; }
   }
+}
+
+.no-tasks {
+  text-align: center;
+  font-style: italic;
+  padding: 5px;
 }
 
 [hour-select] {
