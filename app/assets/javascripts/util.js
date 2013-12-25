@@ -8,10 +8,9 @@ function Time(init, wake){
   if ( wake!==undefined )  {               // init is an offset
     this.minutes = init+wake.minutes;
   } else if ( typeof init === 'string' ) { // init is from form
-    var arr = init.split(':');
-    var hrs = parseInt(arr[0]);
-    var min = parseInt(arr[1]);
-    this.minutes = (hrs*60)+min;    
+    this.fromForm(init);
+  } else if ( init instanceof Date) {      // init is a Date objb
+    this.minutes = (init.getHours()*60)+init.getMinutes();
   } else {
     this.minutes = init;                   // init is minutes
   }
@@ -25,6 +24,17 @@ Time.prototype.toOffset = function(wake) {
 Time.prototype.fromOffset = function(offset, wake){
   var minutes = offset / pixelFactor;
   this.minutes = minutes+wake.minutes;
+  return this;
+};
+Time.prototype.fromForm = function(str){
+  var arr = str.split(':');
+  var hrs = parseInt(arr[0]);
+  var min = parseInt(arr[1]);
+  this.minutes = (hrs*60)+min;
+  return this;
+};
+Time.prototype.fromDate = function(date){
+  this.minutes = (date.getHours()*60)+date.getMinutes();
   return this;
 };
 Time.prototype.add = function(minutes) {  

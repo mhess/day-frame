@@ -1,0 +1,46 @@
+<div class="modal-content signup-modal">
+  <div class="modal-header"><h3 class="modal-title">Sign Up</h3></div>
+  <form name="form">
+    <div class="modal-body">
+
+        <div class="form-group name" ng-class="errors.name && 'has-error'">
+          <label class="control-label">Name:</label>
+          <div class="feedback">
+            <input class="form-control" type="text" name="name" ng-model="user.name">
+            <div class="help-block">{{errors.name}} </div>
+          </div>
+        </div>
+
+        <div class="form-group email" ng-class="errors.email && 'has-error'">
+          <label class="control-label">Email:</label>
+          <div class="feedback">
+            <input class="form-control" type="email" name="email" ng-model="user.email" required>
+            <div class="help-block">{{errors.email}} </div>
+          </div>
+        </div>
+
+        <div class="form-group passwd" ng-class="errors.passwd && 'has-error'">
+          <label class="control-label">Password:</label>
+          <div class="feedback">
+            <input class="form-control" type="password" name="passwd" ng-model="user.passwd">
+            <div class="help-block">{{errors.passwd}}</div>
+          </div>
+        </div>
+
+        <div class="form-group passwdCnf" ng-class="errors.passwdCnf && 'has-error'">
+          <label class="control-label">Confirm Password:</label>
+          <div class="feedback">
+            <input class="form-control" type="password" name="passwdCnf" ng-model="user.passwdCnf">
+            <div class="help-block">{{errors.passwdCnf}}</div>
+          </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <span ng-show="submitError" class="has-error">Sorry, but there was a problem. Please see above.</span>
+      <button class="btn btn-default" ng-click="close()">Cancel</button>
+      <button class="btn btn-primary" ng-disabled="invalid" ng-click="signUp()">Sign Up</button>
+    </div>
+  </form>
+</div>

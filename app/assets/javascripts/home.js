@@ -52,8 +52,8 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                              $scope.dayText = dayText;
 
                                              // Set wake/sleep based on assigned tasks for this day.
-                                             $scope.wake = new Time('7:00');
-                                             $scope.sleep = new Time('22:00');
+                                             $scope.wake = $auth.user ? new Time($auth.user.wake) : new Time(420);
+                                             $scope.sleep = $auth.user ? new Time($auth.user.sleep) : new Time(1380);
                                              if ( !timeline.length ) return;
                                              var first = timeline[0].start;
                                              var last = timeline[timeline.length-1].start;
@@ -170,10 +170,10 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                       snapMode: "inner",
                                       snapTolerance: 25,
                                       revert: 'invalid',
-                                      start: function(){
+                                      start: function(e, ui){
                                         if ( task.start===null ) el.hide();
                                         scope.$apply('drag=true'); },
-                                      stop: function(){
+                                      stop: function(e, ui){
                                         if ( task.start===null ) el.show();
                                         scope.$apply('drag=false'); },
                                       drag: function(e, ui) {
@@ -369,6 +369,65 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                   errs[k] = "This "+k+" "+v+".";});});};
       }])
 
+  .controller('accountModalCtrl',
+    ['$scope', '$auth', '$close', 
+      function($scope, $auth, $close){
+        $scope.invalid = false;
+        $scope.submitError = false;
+
+        var u = $scope.user = angular.copy($auth.user);
+        u.wake = new Time($auth.user.wake);
+        u.sleep = new Time($auth.user.sleep);
+
+        $scope.errors = {name:null, email:null, 
+          passwd:null, passwdCnf:null};
+
+        var errs = $scope.errors;
+
+        $scope.$watchCollection('user', function(u){
+          if ( !u.name )
+            errs.name = "Name is required!";
+          else errs.name = null;
+
+          if ( !u.wake ) errs.wake = "Wake time is invalid!";
+          else errs.wake = null;
+
+          if ( !u.sleep ) errs.sleep = "Sleep time is invalid!";
+          else errs.sleep = null;          
+
+          for ( var k in errs ){
+            if ( errs[k] ){$scope.invalid = true; return;}}
+          $scope.invalid = false;
+        });
+
+        $scope.close = $close;
+        $scope.update = function(){
+          $auth.update(u).then(
+            function(){ $close();}, 
+            function(errors){
+              $scope.submitError = true;
+              angular.forEach(errors, function(v,k) {
+                errs[k] = "This "+k+" "+v+".";});});};
+      }])
+
+  .directive('timeInput', 
+    function(){
+      return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(s, e, a, ctrl){
+          console.log("link");
+          ctrl.$parsers.push(
+            function(i){
+              var mv = ctrl.$modelValue;
+              return i ? ( mv ? mv.fromForm(i) : new Time(i) ) : null;});
+          ctrl.$formatters.push(
+            function(i){
+              console.log('format', i);
+              return i ? i.toForm() : null;});
+        }};
+  })
+
   .directive('widgetArea',
     ['$auth',
       function($auth){
@@ -395,25 +454,33 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
               $el.addClass(fixedClass);
               $window.off('scroll.fixWidgetArea');});}};}])
 
-  .constant('modalCfgs', {task: {tmplUrl: 'angular/task_modal.html',
-                                 ctrl: 'taskModalCtrl',
-                                 open: function(t) {
-                                   var scopeExt = {};
-                                   scopeExt.header = t==null ? "Create Task" : "Edit Task";
-                                   var tmpl = t && angular.copy(t) || {title: "New Task", start: null,
-                                                                       priority: 3, description: null};
-                                   scopeExt.dur =  t ? t.duration.withHrs() : {hr: 0, min: 30};
-                                   tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
-                                   scopeExt.tmpl = tmpl;
-                                   return scopeExt;
-                                 }},
-                          signUp: {tmplUrl: 'angular/signup_modal.html',
-                                   ctrl: 'signUpModalCtrl',
-                                   open: angular.noop},
-                          logIn: {tmplUrl: 'angular/login_modal.html',
-                                   ctrl: 'logInModalCtrl',
-                                   open: angular.noop}
-            })
+  .constant('modalCfgs', {
+    task:{
+      tmplUrl: 'angular/task_modal.html',
+      ctrl: 'taskModalCtrl',
+      open: ['arg', function(arg){
+        var scopeExt = {};
+        scopeExt.header = arg ? "Edit Task": "Create Task";
+        var taskTmpl = {title: "New Task", start: null,
+          priority: 3, description: null};
+        scopeExt.dur =  arg ? arg.duration.withHrs() : {hr: 0, min: 30};
+        var tmpl = arg && angular.copy(arg) || taskTmpl;
+        tmpl.start = tmpl.start ? tmpl.start.toForm() : null;
+        scopeExt.tmpl = tmpl;
+        return scopeExt;}]},
+
+    signUp:{
+      tmplUrl: 'angular/signup_modal.html',
+      ctrl: 'signUpModalCtrl'},
+
+    logIn:{
+      tmplUrl: 'angular/login_modal.html',
+      ctrl: 'logInModalCtrl'},
+
+    account:{
+      tmplUrl: 'angular/account_modal.html',
+      ctrl: 'accountModalCtrl'}
+  })
 
   .config(['$modalsProvider', 'modalCfgs', '$httpProvider',
 

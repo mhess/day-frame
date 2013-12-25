@@ -55,10 +55,27 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
           function(resp){
             that.user = resp.data;
             return resp.data;},
-          function(resp){return $q.reject(resp.data);});};
+          function(resp){
+            return $q.reject(resp.data.errors);});};
 
     this.logOut = function(){
       return $http.delete(that.signOutPath);};
+
+    this.update = function(usr){
+      postData.commit = "Update";
+      postData.user = {
+        name: usr.name,
+        wake: usr.wake.minutes,
+        sleep: usr.sleep.minutes}
+
+      return $http.put(this.registerPath, postData)
+        .then(
+          function(resp){
+            angular.extend(that.user, resp.data);
+            return resp.data;},
+          function(resp){
+            return $q.reject(resp.data.errors);})
+    };
 
     this.unauthenticated = function(){
       // return $modals.logIn()
