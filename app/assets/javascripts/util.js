@@ -18,7 +18,6 @@ function Time(init, wake){
 
 // Instance methods
 Time.prototype.toOffset = function(wake) {
-  //console.log(this.pixelFactor+' '+this.minutes+' '+wake);
   return pixelFactor*(this.minutes-wake.minutes);
 };
 Time.prototype.fromOffset = function(offset, wake){
