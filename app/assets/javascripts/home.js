@@ -23,6 +23,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                              
                              $scope.logIn = function() {
                                var fields = $scope.signInFields;
+                               $scope.$broadcast('autofill:update');
                                $auth.logIn(fields)
                                  .then(
                                   function(){$auth.logInTransition();},
@@ -423,6 +424,14 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
           ctrl.$formatters.push(
             function(i){return i ? i.toForm() : null;});
         }};
+  })
+
+  .directive("autofill", function () {
+    return {
+      require: "ngModel",
+      link: function ($scope, el, a, ctrl) {
+          $scope.$on("autofill:update", 
+            function() {ctrl.$setViewValue(el.val());});}}
   })
 
   .directive('widgetArea',

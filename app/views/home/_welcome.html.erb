@@ -1,0 +1,43 @@
+<div class="welcome clearfix" ng-show="welcome">
+  <div class="pull-left text-center">
+    <h1>Welcome to DayFrame!</h1>
+    <p>DayFrame is a web application that helps you plan out your day!</p>
+    <p>It provides an easy-to-use drag-n-drop interface.</p>
+    <p>Go ahead and try it below!</p>
+  </div>
+
+  <form class="login-form clearfix">
+
+    <div class="controls">
+      <div class="top-row clearfix">
+        <div class="form-group clearfix">
+          <input autofill name="email" ng-model="signInFields.email" type="email" class="form-control" placeholder="email">
+        </div>
+
+        <div class="form-group clearfix">
+          <input autofill name="password" ng-model="signInFields.passwd" type="password" class="form-control" placeholder="password">
+        </div>
+      </div>
+
+      <div class="bottom-row clearfix">
+        <div class="form-group clearfix">
+          <label class="below">
+            <input type="checkbox" ng-model="signInFields.remember"> Remember me
+          </label>
+        </div>
+
+        <div class="form-group clearfix">
+          <label class="below">Forgot your <a>password?</a></label>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="submit clearfix">
+      <a ng-click="logIn()">Log In</a>
+      <span>|</span>
+      <a ng-click="modals.signUp()">Sign Up</a>
+    </div>
+
+  </form>
+</div>
