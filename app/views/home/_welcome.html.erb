@@ -9,31 +9,31 @@
   <form class="login-form clearfix">
 
     <div class="controls">
-      <div class="top-row clearfix">
-        <div class="form-group clearfix">
+      <div class="top-row">
+        <div class="form-group">
           <input autofill name="email" ng-model="signInFields.email" type="email" class="form-control" placeholder="email">
         </div>
 
-        <div class="form-group clearfix">
+        <div class="form-group">
           <input autofill name="password" ng-model="signInFields.passwd" type="password" class="form-control" placeholder="password">
         </div>
       </div>
 
-      <div class="bottom-row clearfix">
-        <div class="form-group clearfix">
+      <div class="bottom-row">
+        <div class="form-group">
           <label class="below">
             <input type="checkbox" ng-model="signInFields.remember"> Remember me
           </label>
         </div>
 
-        <div class="form-group clearfix">
+        <div class="form-group">
           <label class="below">Forgot your <a>password?</a></label>
         </div>
 
       </div>
     </div>
 
-    <div class="submit clearfix">
+    <div class="submit">
       <a ng-click="logIn()">Log In</a>
       <span>|</span>
       <a ng-click="modals.signUp()">Sign Up</a>
