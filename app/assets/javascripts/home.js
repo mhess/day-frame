@@ -207,7 +207,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                 var timeline = $tasks.timeline;
                 return { scope: { time: '=hourSelect', which: '@hourSelect' },
                          templateUrl: 'angular/hour_select.html',
-                         controller: function($scope) {
+                         controller: ['$scope', function($scope) {
                            $scope.up = function() {
                              var firstTask = timeline[0];
                              if ( $scope.which==='wake' && firstTask )
@@ -220,7 +220,7 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                if ( $scope.time.diff(endTime).min < 60 ) return;
                              }
                              $scope.time.addIn(-60);};
-                         }};}])
+                         }]};}])
 
   .controller('taskModalCtrl', ['$scope', '$close', 'Time', 'Minutes', '$tasks',
                                 function($scope, $close, Time, Minutes, $tasks) {

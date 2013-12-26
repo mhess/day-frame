@@ -4,3 +4,10 @@ development:
   pool: 5
   user: dayframe_dev
   password: dayframe_dev
+
+production:
+  adapter: postgresql
+  database: dayframe_dev  
+  pool: 5
+  user: dayframe_dev
+  password: dayframe_dev
