@@ -3,4 +3,4 @@
 
 require File.expand_path('../config/application', __FILE__)
 
-DayPlanner::Application.load_tasks
+DayFrame::Application.load_tasks

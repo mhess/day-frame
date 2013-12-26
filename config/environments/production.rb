@@ -1,4 +1,4 @@
-DayPlanner::Application.configure do
+DayFrame::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.
@@ -67,11 +67,13 @@ DayPlanner::Application.configure do
 
   config.action_mailer.default_url_options = { host: ENV['APP_HOST'] }
   config.action_mailer.smtp_settings = {
-    address: ENV['MAIL_HOST'],
+    address: 'smtp.sendgrid.net',
     port: 587,
     authentication: :plain,
-    user_name: ENV['MAIL_USER'],
-    password: ENV['MAIL_PASSWD']    
+    user_name: ENV['SENDGRID_USERNAME'],
+    password: ENV['SENDGRID_PASSWORD']
+    domain: 'heroku.com',
+    enable_starttls_auto: true
   }
 
 

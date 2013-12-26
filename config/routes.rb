@@ -1,4 +1,4 @@
-DayPlanner::Application.routes.draw do
+DayFrame::Application.routes.draw do
   resources :tasks
 
   devise_for :users, controllers: {sessions: "sessions", registrations: "registrations"}

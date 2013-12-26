@@ -1,6 +1,6 @@
 development:
   adapter: postgresql
-  database: dayplanner_dev  
+  database: dayframe_dev  
   pool: 5
-  user: dayplanner_dev
-  password: dayplanner_dev
+  user: dayframe_dev
+  password: dayframe_dev
