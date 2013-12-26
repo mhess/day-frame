@@ -54,7 +54,6 @@ angular.module('bootstrapModal', [])
                           // Combine modal html load and initialization promises;
                           $q.all([initPromise, pagePromise])
                             .then(function(promArray){
-                              console.log('initPromise ', promArray[0]);
                               $controller(cfg.ctrl, {$scope: cfg.scope, $close: cfg.close});
                               angular.extend(cfg.scope, promArray[0]);
                               modalContainer.append(cfg.content);

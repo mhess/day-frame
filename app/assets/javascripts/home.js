@@ -13,8 +13,8 @@ var oneDay = 1000*60*60*24;
 
 var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
 
-  .controller('viewCtrl', ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$window', '$auth',
-                           function($scope, $tasks, hoursArray, Time, $modals, $window, $auth) {
+  .controller('viewCtrl', ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$window', '$auth', '$rootScope',
+                           function($scope, $tasks, hoursArray, Time, $modals, $window, $auth, $rootScope) {
                              $scope.modals = $modals;
                              $scope.auth = $auth;
                              $scope.tasks = $tasks;
@@ -52,8 +52,8 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
                                              $scope.dayText = dayText;
 
                                              // Set wake/sleep based on assigned tasks for this day.
-                                             $scope.wake = $auth.user ? new Time($auth.user.wake) : new Time(420);
-                                             $scope.sleep = $auth.user ? new Time($auth.user.sleep) : new Time(1380);
+                                             $rootScope.wake = $auth.user ? new Time($auth.user.wake) : new Time(420);
+                                             $rootScope.sleep = $auth.user ? new Time($auth.user.sleep) : new Time(1380);
                                              if ( !timeline.length ) return;
                                              var first = timeline[0].start;
                                              var last = timeline[timeline.length-1].start;
@@ -416,15 +416,12 @@ var app = angular.module("app", ['tasks', 'util', 'bootstrapModal', 'auth', 'ngC
         restrict: 'A',
         require: 'ngModel',
         link: function(s, e, a, ctrl){
-          console.log("link");
           ctrl.$parsers.push(
             function(i){
               var mv = ctrl.$modelValue;
               return i ? ( mv ? mv.fromForm(i) : new Time(i) ) : null;});
           ctrl.$formatters.push(
-            function(i){
-              console.log('format', i);
-              return i ? i.toForm() : null;});
+            function(i){return i ? i.toForm() : null;});
         }};
   })
 

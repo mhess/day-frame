@@ -17,6 +17,8 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
             $tasks.remote(true).changeDay();
             $rootScope.$broadcast('fixWidgetArea');
             $rootScope.welcome = false;});
+            $rootScope.wake = new Time(that.user.wake);
+            $rootScope.sleep = new Time(that.user.sleep);
             deferred.resolve();});
       return deferred.promise;}
 
