@@ -87,12 +87,11 @@ var app = angular.module("app",
         restrict: 'E',
         templateUrl: 'angular/task.html',
         replace: true,
-        controller: function($scope) {
+        controller: ['$scope', function($scope) {
           $scope.duration = null;
           $scope.$watch('task.duration',
-                        function(d) {$scope.duration = d.toString();},
-                        true);
-        },
+            function(d) {$scope.duration = d.toString();},
+            true);}],
         link: function(scope, el) {
           var timeDroppable = $('.time-droppable');
           var task = scope.task;
@@ -228,7 +227,8 @@ var app = angular.module("app",
       $scope.tmpl = {};
       $scope.dur = {hr: null, min: null};
       $scope.invalid = false;
-      $scope.errors = {dur: null, title: null, start: null};
+      $scope.errors = {dur: null, title: null, 
+        start: null, description:null};
 
       $scope.$watch('tmpl.title', function() {
         var error = null;
