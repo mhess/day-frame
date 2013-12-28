@@ -230,41 +230,48 @@ a:hover { text-decoration: none; }
   font-size: 12px;
 }
 
-.task-modal {
-  .form-horizontal {
-    .title input {
-      width: 444px;
-    }
-    .form-group {
-      height: 55px;
-      margin-bottom: 5px;
-      & > div { display: inline-block; }
-    }
-    input,select {
-      display: inline-block;
-      width: initial;      
-    }
-    select {
-      vertical-align: bottom;
-    }
-    .feedback {
-      margin-left: 15px;
-    }
-    .duration {
-      input {
-        width: 80px;
-        margin-right: 5px;
-        &:last-child {
-          margin-left: 15px;
-        }
+.task-modal form {
+  .title input {width: 444px;}
+
+  .form-group {
+    height: 55px;
+    margin-bottom: 5px;
+
+    label,.feedback {float:left;}
+    //& > div { display: inline-block; }
+  }
+  input,select {
+    display: inline-block;
+    width: initial;      
+  }
+  select {
+    vertical-align: bottom;
+  }
+  .feedback {
+    margin-left: 15px;
+  }
+  .duration {
+    input {
+      width: 80px;
+      margin-right: 5px;
+      &:last-child {
+        margin-left: 15px;
       }
     }
-    label {
-      vertical-align: top;
-      width: 90px;
-      padding-right: 0;
-    }
-  }  
+  }
+  label {
+    text-align: right;
+    vertical-align: top;
+    width: 90px;
+    padding-right: 0;
+  }
+
+  .field-info {
+    margin-left: 15px;
+    line-height: 34px;
+    font-size: 12px;
+    font-style: italic;
+  }
 }
 
 

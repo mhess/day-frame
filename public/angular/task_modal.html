@@ -26,6 +26,7 @@
             <input class="form-control" type="time" ng-model="tmpl.start" step="300">
             <div class="help-block">{{errors.start}}</div>
           </div>
+          <span class="field-info">( Leave this blank to put task in backlog. )</span>
         </div>
         <div class="form-group priority">
           <label class="control-label">Priority:</label>
@@ -42,8 +43,8 @@
         <textarea class="form-control" ng-model="tmpl.description"></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" ng-click="close()">Cancel</button>
-      <button class="btn btn-primary" ng-disabled="invalid" ng-click="save()">Save</button>
+      <a class="btn btn-default" ng-click="close()">Cancel</a>
+      <a class="btn btn-primary" ng-disabled="invalid" ng-click="save()">Save</a>
     </div>
   </form>
 </div>

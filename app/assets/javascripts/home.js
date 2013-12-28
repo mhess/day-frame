@@ -478,12 +478,20 @@ var app = angular.module("app",
   })
 
   .config(['$modalsProvider', 'modalCfgs', '$httpProvider',
-    // Configure modals
     function($modalsProvider, modalCfgs, $httpProvider) {
+
+      // Configure modals
       angular.forEach(modalCfgs,
         function(val, key){$modalsProvider.register(key, val);});
       $modalsProvider.appSelector = '[ng-app]';
 
+      // No caching for development
+      if ( window.location.host.match(/^localhost/) ) {
+        $httpProvider.defaults.headers.get = {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: 0};
+      }
       // Add interceptor for unauthenticated requests.
       $httpProvider.interceptors.push(
        ['$q', '$injector', function($q, $inj){

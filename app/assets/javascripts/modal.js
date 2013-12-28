@@ -31,13 +31,15 @@ angular.module('bootstrapModal', [])
               if ( err ) cfg.deferred.reject(val);
               else cfg.deferred.resolve(val);};
 
+            var getOpts = $window.location.host.match(/^localhost/) ? {} :{cache: $templateCache};
+            console.log(getOpts);
             // Attach modal activation function
             modalService[name] = function(arg) {
               cfg.deferred = $q.defer();
 
-              // Fetch modal html
+              // Fetch modal html              
               var pagePromise = $http.get(
-                cfg.tmplUrl, {cache: $templateCache})
+                cfg.tmplUrl, getOpts)
                   .then(
                     function(resp){
                       // Create a new scope and instantiate new controller for each call
@@ -57,7 +59,8 @@ angular.module('bootstrapModal', [])
                     $controller(cfg.ctrl, {$scope: cfg.scope, $close: cfg.close});
                     angular.extend(cfg.scope, promArray[0]);
                     modalContainer.append(cfg.content);
-                    modalOuter.modal('show');});
+                    console.log('modal');
+                    modalOuter.modal({backdrop:'static', keyboard: false});});
 
                 return cfg.deferred.promise;};});
         return modalService;
