@@ -9,6 +9,7 @@ $color-pri-4: #D3E6DC;
 $hour-height: 60px;
 $list-padding: 15px;
 $panel-width: 440px;
+$color-now: #DB4A47;
 
 /* Undo bootstrap styling */
 body {
@@ -65,6 +66,20 @@ a:hover { text-decoration: none; }
   width: 100%;
 }
 
+#now-marker {
+  position: absolute;
+  width: 100%;
+  border-top: 2px solid $color-now;
+
+  .pointer {
+    position: absolute;
+    top: -6px; right: -12px;
+    height: 10px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 10px solid $color-now;
+  }
+}
 
 // Widget Area //
 

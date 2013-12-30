@@ -15,8 +15,8 @@ var app = angular.module("app",
   ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
 
   .controller('viewCtrl', 
-    ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$window', '$auth', '$rootScope',
-      function($scope, $tasks, hoursArray, Time, $modals, $window, $auth, $rootScope) {
+    ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$rootScope', '$window',
+      function($scope, $tasks, hoursArray, Time, $modals, $auth, $rootScope, $window) {
         $scope.modals = $modals;
         $scope.auth = $auth;
         $scope.tasks = $tasks;
@@ -37,8 +37,6 @@ var app = angular.module("app",
 
         // Day and wake/sleep watchers //
 
-
-        var dayPosition = 0;
         var timeline = $tasks.timeline;                             
         $scope.$watch('tasks.date',
           function(newDay, oldDay) {
@@ -60,16 +58,15 @@ var app = angular.module("app",
             if ( !timeline.length ) return;
             var first = timeline[0].start;
             var last = timeline[timeline.length-1].start;
-            if ( first.lt($scope.wake) )
-              $scope.wake = first.floor();
-            if (last.gt($scope.sleep) )
-              $scope.sleep = last.ceil();
+            if ( first.lt($rootScope.wake) )
+              $rootScope.wake = first.floor();
+            if (last.gt($rootScope.sleep) )
+              $rootScope.sleep = last.ceil();
           }, true);
 
         $scope.$watch('wake+""+sleep', function(v) {
           if ( !v ) return;
           $scope.hours = hoursArray($scope.wake, $scope.sleep);});
-
                              
         // Task maniplulation functions //
 
@@ -78,6 +75,20 @@ var app = angular.module("app",
             task.delete();};
 
         $scope.unassign = function(task) {task.update({start: null});};
+
+        // Add now marker (must be done on next tick to allow assignment of 
+        // wake/sleep in $rootScope).
+        setTimeout(function(){
+          var now = new Time(new Date);
+          if ( now.gt($rootScope.sleep) ) return;
+          nowMarker = $('#now-marker').css('top', now.toOffset($rootScope.wake));
+          var intvlId = setInterval(
+            function(){
+              now.fromDate(new Date());
+              if ( now.gt($rootScope.sleep) ) clearInterval(intvlId);
+              else nowMarker.css('top', now.toOffset($rootScope.wake));}, 
+            1000);
+        });
 
   }])
 
@@ -530,4 +541,5 @@ var app = angular.module("app",
       // Attach logout function to rootScope.
       $rootScope.logOut = function(){$auth.logOut()
         .then(function(){window.location.reload()});};
+
   }]);
