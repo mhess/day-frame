@@ -35,7 +35,12 @@ var app = angular.module("app",
                  return;}
                delete $scope.signInFields;});};
 
-        // Day and wake/sleep watchers //
+        function initWakeSleep(){
+          var u = $auth.user;
+          $rootScope.wake = u ? new Time(u.wake) : new Time(420);
+          $rootScope.sleep = u ? new Time(u.sleep) : new Time(1380);}
+
+        // Day watcher //
 
         var timeline = $tasks.timeline;                             
         $scope.$watch('tasks.date',
@@ -53,8 +58,7 @@ var app = angular.module("app",
             $scope.dayText = dayText;
 
             // Set wake/sleep based on assigned tasks for this day.
-            $rootScope.wake = $auth.user ? new Time($auth.user.wake) : new Time(420);
-            $rootScope.sleep = $auth.user ? new Time($auth.user.sleep) : new Time(1380);
+            initWakeSleep();
             if ( !timeline.length ) return;
             var first = timeline[0].start;
             var last = timeline[timeline.length-1].start;
@@ -64,31 +68,35 @@ var app = angular.module("app",
               $rootScope.sleep = last.ceil();
           }, true);
 
+        // Logic to update now marker //
+
+        var now = new Time(new Date);
+        var nowMarker = $('#now-marker');
+        var intvlId;
+        function updateNowMarker(){
+          now.fromDate(new Date());
+          if ( now.gt($rootScope.sleep) || now.lt($rootScope.wake) ) 
+            nowMarker.hide();
+          else nowMarker.show().css('top', now.toOffset($rootScope.wake));}
+
+        initWakeSleep();
+        updateNowMarker()
+        setInterval(updateNowMarker, 60000);
+
+        // Wake/sleep watcher //
+
         $scope.$watch('wake+""+sleep', function(v) {
           if ( !v ) return;
-          $scope.hours = hoursArray($scope.wake, $scope.sleep);});
+          $scope.hours = hoursArray($rootScope.wake, $rootScope.sleep);
+          updateNowMarker();
+        });
                              
         // Task maniplulation functions //
-
         $scope.deleteTask = function(task) {
           if ( $window.confirm("Are you sure you want to delete this task?") )
             task.delete();};
 
         $scope.unassign = function(task) {task.update({start: null});};
-
-        // Add now marker (must be done on next tick to allow assignment of 
-        // wake/sleep in $rootScope).
-        setTimeout(function(){
-          var now = new Time(new Date);
-          if ( now.gt($rootScope.sleep) ) return;
-          nowMarker = $('#now-marker').css('top', now.toOffset($rootScope.wake));
-          var intvlId = setInterval(
-            function(){
-              now.fromDate(new Date());
-              if ( now.gt($rootScope.sleep) ) clearInterval(intvlId);
-              else nowMarker.css('top', now.toOffset($rootScope.wake));}, 
-            1000);
-        });
 
   }])
 
@@ -381,10 +389,8 @@ var app = angular.module("app",
         u.wake = new Time($auth.user.wake);
         u.sleep = new Time($auth.user.sleep);
 
-        $scope.errors = {name:null, email:null, 
+        var errs = $scope.errors = {name:null, email:null, 
           passwd:null, passwdCnf:null};
-
-        var errs = $scope.errors;
 
         $scope.$watchCollection('user', function(u){
           if ( !u.name )
@@ -405,6 +411,35 @@ var app = angular.module("app",
         $scope.close = $close;
         $scope.update = function(){
           $auth.update(u).then(
+            function(){ $close();}, 
+            function(errors){
+              $scope.submitError = true;
+              angular.forEach(errors, function(v,k) {
+                errs[k] = "This "+k+" "+v+".";});});};
+      }])
+
+  .controller('forgotModalCtrl',
+    ['$scope', '$auth', '$close', 
+      function($scope, $auth, $close){
+        $scope.invalid = false;
+        $scope.submitError = false;
+        $scope.email = null;
+
+        var errs = $scope.errors = {email: null};
+
+        $scope.$watch('email', function(e){
+          if ( !e && $scope.form.email.$dirty )
+            errs.email = "Email is invalid!";
+          else errs.email = null;
+
+          for ( var k in errs ){
+            if ( errs[k] ){$scope.invalid = true; return;}}
+          $scope.invalid = false;
+        });
+
+        $scope.close = $close;
+        $scope.submit = function(){
+          $auth.forgot($scope.email).then(
             function(){ $close();}, 
             function(errors){
               $scope.submitError = true;
@@ -435,30 +470,30 @@ var app = angular.module("app",
   })
 
   .directive('widgetArea',
-    ['$auth',
-      function($auth){
+    ['$auth', '$window',
+      function($auth, $window){
         return {restrict: 'C',
           link: function($scope, $el){
-            var $window = $(window);
+            var myWindow = angular.element($window);
             var fixedClass = 'fixed-top';
             if ( !$scope.welcome ){
               $el.addClass('fixed-top');
-              $window.off('scroll.fixWidgetArea');
+              myWindow.off('scroll.fixWidgetArea');
             // Affix logic
             } else {
               var fixed = false;
               var top = $el.offset().top;
-              $window.on('scroll.fixWidgetArea', function(){
+              myWindow.on('scroll.fixWidgetArea', function(){
                 if ( fixed ) {
-                  if ( $window.scrollTop() < top ){
+                  if ( myWindow.scrollTop() < top ){
                     fixed = false;
                     $el.removeClass(fixedClass);}
-                  } else if ( $window.scrollTop() >= top ){
+                  } else if ( myWindow.scrollTop() >= top ){
                     fixed = true;
                     $el.addClass(fixedClass);}});}
             $scope.$on('fixWidgetArea', function(){
               $el.addClass(fixedClass);
-              $window.off('scroll.fixWidgetArea');});}};}])
+              myWindow.off('scroll.fixWidgetArea');});}};}])
 
   .constant('modalCfgs', {
     task:{
@@ -485,7 +520,11 @@ var app = angular.module("app",
 
     account:{
       tmplUrl: 'angular/account_modal.html',
-      ctrl: 'accountModalCtrl'}
+      ctrl: 'accountModalCtrl'},
+
+    forgot:{
+      tmplUrl: 'angular/forgot_modal.html',
+      ctrl: 'forgotModalCtrl'}
   })
 
   .config(['$modalsProvider', 'modalCfgs', '$httpProvider',

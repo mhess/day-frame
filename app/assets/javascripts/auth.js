@@ -25,6 +25,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
     this.logInPath = '/users/sign_in.json'; //config.signInPath;
     this.registerPath = '/users.json'; //config.registerPath;
     this.signOutPath = '/users/sign_out';
+    this.forgotPath = '/users/password.json';
     this.user = null;
 
     var postData = {
@@ -78,6 +79,14 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
           function(resp){
             return $q.reject(resp.data.errors);})
     };
+
+    this.forgot = function(email){
+      postData.commit = 'Send me reset password instructions';
+      postData.user = {email: email};
+      return $http.post(this.forgotPath, postData)
+        .then(
+          function(resp){return resp.data;},
+          function(resp){return $q.reject(resp.data.errors);});};
 
     this.unauthenticated = function(){
       // return $modals.logIn()

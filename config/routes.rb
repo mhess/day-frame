@@ -1,7 +1,11 @@
 DayFrame::Application.routes.draw do
   resources :tasks
 
-  devise_for :users, controllers: {sessions: "sessions", registrations: "registrations"}
+  devise_for :users, controllers: {
+    sessions: "sessions", 
+    registrations: "registrations",
+    passwords: "passwords"
+  }
   
   devise_scope :user do
     get "/users/info", to: "registrations#info"

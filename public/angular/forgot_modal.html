@@ -1,0 +1,20 @@
+<div class="modal-content forgot-modal">
+  <div class="modal-header"><h3 class="modal-title">Forgot Your Password?</h3></div>
+  <form name="form">
+    <div class="modal-body">
+      <p>Provide your password below and we'll send you an email with instructions on how to reset your password.</p>
+      <div class="form-group email" ng-class="errors.email && 'has-error'">
+        <label class="control-label">Email:</label>
+        <div class="feedback">
+          <input name="email" class="form-control" type="email" ng-model="email">
+          <div class="help-block">{{errors.email}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span ng-show="submitError" class="submit-error">Sorry, but there was a problem. Please see above.</span>
+      <a class="btn btn-default" ng-click="close()">Cancel</a>
+      <a class="btn btn-primary" ng-disabled="invalid" ng-click="submit()">Submit</a>
+    </div>
+  </form>
+</div>

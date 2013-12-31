@@ -10,6 +10,7 @@ $hour-height: 60px;
 $list-padding: 15px;
 $panel-width: 440px;
 $color-now: #DB4A47;
+$color-text-err: #A94442;
 
 /* Undo bootstrap styling */
 body {
@@ -244,6 +245,10 @@ a:hover { text-decoration: none; }
   height: 12px;
   font-size: 12px;
 }
+
+.submit-error { 
+  color: $color-text-err;
+  margin-right: 15px; }
 
 .task-modal form {
   .title input {width: 444px;}
