@@ -8,20 +8,16 @@ angular.module('google', [])
       var load_param = '?onload=googleClientLoad';
       var url = url_base + load_param;
       var provider = this;
-      this.config = function(apiKey, clientId){
-        this.apiKey = apiKey;
-        this.clientId = clientId;};
   
       var gclient = {};
 
       this.$get = ['$q', '$document', '$interval',
         function($q, $document, $interval){
-          $document.find('body').append('<script src="'+url+'"></script>');
           var gapiDeferred = $q.defer();
           var gapiPromise = gapiDeferred.promise;
   
           googleClientLoad = function(){
-            gapi.client.setApiKey(provider.apiKey);
+            gapi.client.setApiKey(gclient.apiKey);
             console.log('google loaded');
             gapiDeferred.resolve();};
   
@@ -29,7 +25,7 @@ angular.module('google', [])
             scope = 'https://www.googleapis.com/auth/'+scope;
             var d = $q.defer();
             gapiPromise.then(function(){
-              var authOpts = {client_id: provider.clientId, scope: scope};
+              var authOpts = {client_id: gclient.clientId, scope: scope};
               gapi.auth.authorize(authOpts, 
                 function(authResult){
                   if ( !authResult || authResult.error) return d.reject();
@@ -65,6 +61,11 @@ angular.module('google', [])
                 console.log(svc, 'loaded');
                 d.resolve(mySvc);});});
             return d.promise;}
+
+          gclient.init = function(args){
+            this.apiKey = args.apiKey;
+            this.clientId = args.clientId;
+            $document.find('body').append('<script src="'+url+'"></script>');};
 
           gclient.load = function(svc, version){
             if ( svc in this ) return $q.when(gclient[svc]);

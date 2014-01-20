@@ -541,8 +541,8 @@ var app = angular.module("app",
         $httpProvider.defaults.headers.get = {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           Pragma: 'no-cache',
-          Expires: 0};
-      }
+          Expires: 0};}
+
       // Add interceptor for unauthenticated requests.
       $httpProvider.interceptors.push(
        ['$q', '$injector', function($q, $inj){
@@ -564,8 +564,8 @@ var app = angular.module("app",
              return $q.reject(resp);}};}]);
   }])
 
-  .run(['$cookieStore', '$auth', '$tasks', '$rootScope', 'localStore', 'remoteStore',
-    function($cookieStore, $auth, $tasks, $rootScope, localStore, remoteStore) {
+  .run(['$cookieStore', '$auth', '$tasks', '$rootScope', 'localStore', 'remoteStore', '$gclient',
+    function($cookieStore, $auth, $tasks, $rootScope, localStore, remoteStore, $gclient) {
 
       // Grab user info from cookie if logged in.
       var userInfo = $cookieStore.get('user_info');
@@ -576,8 +576,12 @@ var app = angular.module("app",
       $tasks.changeDay();
       $rootScope.welcome = !userInfo;
 
-      // Delete user info from cookie
-      ['user_info'].forEach(function(i){$cookieStore.remove(i);});
+      // Google API clientId and apiKey
+      $gclient.init($cookieStore.get('google_api_config'));
+
+      // Delete unneeded cookies
+      ['user_info', 'goggle_api_config'].forEach(
+        function(i){$cookieStore.remove(i);});
 
       // Attach logout function to rootScope.
       $rootScope.logOut = function(){$auth.logOut()
