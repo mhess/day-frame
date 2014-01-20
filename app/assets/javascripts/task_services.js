@@ -4,20 +4,19 @@ angular.module('tasks', ['util'])
 
   // All operations in this service assume an $apply context
   .service('$tasks',
-    ['remoteStore', 'localStore', 'date2day', 'setPixelFactor', 'Time', 'Minutes',
-     function(remoteStore, localStore, date2day, setPixelFactor, Time, Minutes) {
+    ['date2day', 'setPixelFactor', 'Time', 'Minutes', '$q',
+     function(date2day, setPixelFactor, Time, Minutes, $q) {
        var taskSvc = this,
        taskMap = {},
        serialDay,
        oneDay = 1000*60*60*24;
-       
-       this.timeline = [];
-       this.backlog = [];
-       this.date = new Date();
 
-       var timeline = this.timeline;
-       var backlog = this.backlog;
-       var taskStore = localStore;
+       var timeline = this.timeline = [];
+       var backlog = this.backlog = [];
+       var stores = this.stores = {};
+
+       this.createStore = 'none';
+       this.date = new Date();
 
        setPixelFactor(1);
 
@@ -32,8 +31,9 @@ angular.module('tasks', ['util'])
          self.setDate(other.getDate());
          return self;}
        
-       function Task(props){
+       function Task(props, store){
          angular.copy(props, this);
+         this.store = store;
          this.duration = new Minutes(this.duration.min);
          this.start = this.start ? new Time(this.start.minutes) : null;}
        
@@ -51,12 +51,12 @@ angular.module('tasks', ['util'])
            timeline.indexOf(task) < 0 && timeline.push(task);
          }
          timeline.sort(taskCmp);
-         taskStore.update(task)
+         stores[task.store].update(task)
            .then(null,function(){alert("Task modification failed");});};
 
        Task.prototype.delete = function(){
          var task = this;
-         taskStore.delete(this).then(
+         stores[task.store].delete(this).then(
            function(){
              if ( task.start===null ) {
                backlog.splice(backlog.indexOf(task), 1);
@@ -64,30 +64,37 @@ angular.module('tasks', ['util'])
                timeline.splice(timeline.indexOf(task), 1);}},
            function(){alert("Task deletion failed");});};
        
-       function newTask(task){
-         task = new Task(task);
+       function newTask(task, storeName){
+         task = new Task(task, storeName);
          taskMap[task.id] = task;
          if ( task.start===null ) backlog.push(task);
          else timeline.push(task);}
 
        function query(params){
-         return taskStore.query(params)
-           .then(
-             function(tasks){
-               tasks.forEach(newTask);
-               timeline.sort(taskCmp);});}
-
-       this.remote = function(bool){
-         taskStore = bool ? remoteStore : localStore;
-         return this;};
+         var promises = [], storeNames = [];
+         angular.forEach(stores, 
+           function(s,n){
+             storeNames.push(n);
+             promises.push(s.query(params));});
+         return $q.all(promises).then(
+           function(resultsArray){
+             resultsArray.forEach(
+               function(tasks){
+                 var curStore = storeNames.shift();
+                 tasks.forEach(
+                   function(task){
+                    console.log(curStore);
+                    newTask(task, curStore);})});
+             timeline.sort(taskCmp);});}
        
-       this.get = function(tid){return taskMap[tid]; };
+       this.get = function(tid){return taskMap[tid];};
 
        this.create = function(props) {
          if ( props.start ) props.day = serialDay;               
-         taskStore.create(new Task(props))
-           .then(function(task){newTask(task);},
-                 function(){alert("Task creation failed");});};
+         stores[this.createStore].create(new Task(props, this.createStore))
+           .then(
+            function(task){newTask(task, this.createStore);},
+            function(){alert("Task creation failed");});};
 
        this.setDay = function(dateObj){
          serialDay = date2day(dateObj);
@@ -100,6 +107,17 @@ angular.module('tasks', ['util'])
        this.changeDay = function(delta){
          if (!delta) return this.setDay(new Date());
          else return this.setDay(new Date(this.date.getTime()-(delta*oneDay)));};
+
+      this.addStore = function(name, storeObj, create){
+        if ( create ) this.createStore = name;
+        this.stores[name] = storeObj;
+        return this;};
+
+      this.removeStore = function(name){
+        var store = this.stores[name];
+        if ( !store ) return false;
+        delete this.stores[name];
+        return true;};
   }])
 
   .service('remoteStore',

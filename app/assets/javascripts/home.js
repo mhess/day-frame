@@ -8,11 +8,12 @@
 //= require modal
 //= require auth
 //= require bootstrap/dropdown
+//= require google_api
 
 var oneDay = 1000*60*60*24;
 
 var app = angular.module("app", 
-  ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies'])
+  ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies', 'google'])
 
   .controller('viewCtrl', 
     ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$rootScope', '$window',
@@ -563,14 +564,15 @@ var app = angular.module("app",
              return $q.reject(resp);}};}]);
   }])
 
-  .run(['$cookieStore', '$auth', '$tasks', '$rootScope',
-    function($cookieStore, $auth, $tasks, $rootScope) {
+  .run(['$cookieStore', '$auth', '$tasks', '$rootScope', 'localStore', 'remoteStore',
+    function($cookieStore, $auth, $tasks, $rootScope, localStore, remoteStore) {
 
       // Grab user info from cookie if logged in.
       var userInfo = $cookieStore.get('user_info');
       if ( userInfo ) {
         $auth.user = userInfo;
-        $tasks.remote(true);}
+        $tasks.addStore('remote', remoteStore, true);}
+      else $tasks.addStore('local', localStore, true);
       $tasks.changeDay();
       $rootScope.welcome = !userInfo;
 

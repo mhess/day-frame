@@ -32,7 +32,6 @@ angular.module('bootstrapModal', [])
               else cfg.deferred.resolve(val);};
 
             var getOpts = $window.location.host.match(/^localhost/) ? {} :{cache: $templateCache};
-            console.log(getOpts);
             // Attach modal activation function
             modalService[name] = function(arg) {
               cfg.deferred = $q.defer();

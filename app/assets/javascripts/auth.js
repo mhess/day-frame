@@ -3,18 +3,19 @@
 
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
-  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q',
-  function($http, $rootScope, $window, $modals, $tasks, $q) {
+  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 'remoteStore',
+  function($http, $rootScope, $window, $modals, $tasks, $q, remoteStore) {
 
     var that = this;
-    var $welcome = $('.welcome');
 
+    //FIXME: This probably doesn't belong here.
     this.logInTransition = function(){
       var deferred = $q.defer();
-      $welcome.slideUp(1000,
+      $('.welcome').slideUp(1000,
         function(){
           $rootScope.$apply(function(){
-            $tasks.remote(true).changeDay();
+            $tasks.removeStore('local');
+            $tasks.addStore('remote', remoteStore).changeDay();
             $rootScope.$broadcast('fixWidgetArea');
             $rootScope.welcome = false;});
             $rootScope.wake = new Time(that.user.wake);
