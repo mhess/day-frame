@@ -11,19 +11,39 @@
           </div>
         </div>
 
-        <div class="form-group wake" ng-class="errors.wake && 'has-error'">
-          <label class="control-label">Wake Time:</label>
-          <div class="feedback">
-            <input class="form-control" type="time" ng-model="user.wake" step="3600" time-input>
-            <div class="help-block">{{errors.wake}}</div>
+        <div class="row">
+          <div class="form-group col-xs-6" ng-class="errors.wake && 'has-error'">
+            <label class="control-label">Wake Time:</label>
+            <div class="feedback">
+              <input class="form-control" type="time" ng-model="user.wake" step="3600" time-input>
+              <div class="help-block">{{errors.wake}}</div>
+            </div>
+          </div>
+
+          <div class="form-group col-xs-6" ng-class="errors.sleep && 'has-error'">
+            <label class="control-label">Sleep Time:</label>
+            <div class="feedback">
+              <input class="form-control" type="time" ng-model="user.sleep" step="3600" time-input>
+              <div class="help-block">{{errors.sleep}}</div>
+            </div>
           </div>
         </div>
 
-        <div class="form-group sleep" ng-class="errors.sleep && 'has-error'">
-          <label class="control-label">Sleep Time:</label>
-          <div class="feedback">
-            <input class="form-control" type="time" ng-model="user.sleep" step="3600" time-input>
-            <div class="help-block">{{errors.sleep}}</div>
+        <div ng-controller="googleCalSelectCtrl" ng-switch="state">
+          
+          <div ng-switch-when="0">
+            <a href="javascript:;" ng-click="init()">Import Google Calendars</a>
+          </div>
+          
+          <div ng-switch-when="1">Loading Google Calendars...</div>
+          
+          <div ng-switch-when="2" class="form-group">
+            <div><label class="control-label">Select Google Calendar(s):</label></div>
+            <div class="btn-group-vertical calendar-list">
+              <div ng-repeat="c in cals" class="btn btn-default cal-option" ng-class="{selected: c.sel}" ng-click="toggle(c)">
+                <span class="checkmark">✓</span>{{c.summary}}
+              </div>
+            </div>
           </div>
         </div>
 

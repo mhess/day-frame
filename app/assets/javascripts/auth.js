@@ -46,8 +46,9 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         .then(
           function(resp){
             that.user = resp.data;
+            that.user.gcals = {empty:1};
             return resp.data;},
-          function(resp){throw resp.data;});};
+          function(resp){$q.reject(resp.data);});};
 
     this.signUp = function(usr){
       postData.user = usr;
@@ -58,6 +59,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         .then(
           function(resp){
             that.user = resp.data;
+            that.user.gcals = {empty:1};
             return resp.data;},
           function(resp){
             return $q.reject(resp.data.errors);});};
@@ -66,6 +68,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.delete(that.signOutPath);};
 
     this.update = function(usr){
+      if (usr.gcals) this.user.gcals = usr.gcals;
       postData.commit = "Update";
       postData.user = {
         name: usr.name,

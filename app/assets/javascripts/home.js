@@ -387,6 +387,7 @@ var app = angular.module("app",
         $scope.submitError = false;
 
         var u = $scope.user = angular.copy($auth.user);
+        $scope.$broadcast('userReady');
         u.wake = new Time($auth.user.wake);
         u.sleep = new Time($auth.user.sleep);
 
@@ -496,6 +497,40 @@ var app = angular.module("app",
               $el.addClass(fixedClass);
               myWindow.off('scroll.fixWidgetArea');});}};}])
 
+  .controller('googleCalSelectCtrl', 
+    ['$scope', '$gclient',
+    function($scope, $gclient){
+      var cals = {};
+      $scope.state = 1;
+
+      $scope.$on('userReady', function(){
+        cals = $scope.cals = angular.copy($scope.user.gcals);
+        console.log(cals);
+        if ( cals.empty ) $scope.state = 0;
+        else $scope.init();});
+
+      $scope.init = function(){
+        if ( $scope.user.gcals.empty ) {
+          delete cals.empty;
+          delete $scope.user.gcals.empty;}
+        $scope.state = 1;
+        $gclient.load('calendar', 'v3')
+          .then(
+            function(){return $gclient.calendar.calendarList.list();},
+            function(){$scope.state = 0;})
+          .then(function(resp){
+            angular.forEach(resp.items, function(c){
+              if ( !cals[c.id] ) cals[c.id] = c;
+              else console.log(cals[c.id].summary);
+            });
+            $scope.state = 2;});};
+
+      $scope.toggle = function(c){
+        if ( c.sel ) delete $scope.user.gcals[c.id];
+        else $scope.user.gcals[c.id] = c;
+        c.sel = !c.sel;}
+  }])
+
   .constant('modalCfgs', {
     task:{
       tmplUrl: 'angular/task_modal.html',
@@ -571,6 +606,7 @@ var app = angular.module("app",
       var userInfo = $cookieStore.get('user_info');
       if ( userInfo ) {
         $auth.user = userInfo;
+        userInfo.gcals = {empty: 1};
         $tasks.addStore('remote', remoteStore, true);}
       else $tasks.addStore('local', localStore, true);
       $tasks.changeDay();

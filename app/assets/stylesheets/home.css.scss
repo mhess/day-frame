@@ -328,3 +328,13 @@ a:hover { text-decoration: none; }
   .glyphicon-chevron-left { left: 2px; }
   .glyphicon-chevron-right { right: 2px; }
 }
+
+// Google Calendar Selection
+
+.calendar-list { margin-left: 10px; }
+.cal-option { padding-right: 20px; }
+.checkmark { 
+  opacity: 0;
+  margin-right: 2px; 
+  .selected & { opacity: 1}
+}
