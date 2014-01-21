@@ -607,8 +607,8 @@ var app = angular.module("app",
       if ( userInfo ) {
         $auth.user = userInfo;
         userInfo.gcals = {empty: 1};
-        $tasks.addStore('remote', remoteStore, true);}
-      else $tasks.addStore('local', localStore, true);
+        $tasks.addStore(remoteStore, true);}
+      else $tasks.addStore(localStore, true);
       $tasks.changeDay();
       $rootScope.welcome = !userInfo;
 

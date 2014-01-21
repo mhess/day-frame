@@ -15,7 +15,7 @@ angular.module('tasks', ['util'])
        var backlog = this.backlog = [];
        var stores = this.stores = {};
 
-       this.createStore = 'none';
+       this.createStore = null;
        this.date = new Date();
 
        setPixelFactor(1);
@@ -31,9 +31,8 @@ angular.module('tasks', ['util'])
          self.setDate(other.getDate());
          return self;}
        
-       function Task(props, store){
+       function Task(props){
          angular.copy(props, this);
-         this.store = store;
          this.duration = new Minutes(this.duration.min);
          this.start = this.start ? new Time(this.start.minutes) : null;}
        
@@ -51,12 +50,12 @@ angular.module('tasks', ['util'])
            timeline.indexOf(task) < 0 && timeline.push(task);
          }
          timeline.sort(taskCmp);
-         stores[task.store].update(task)
+         task.store.update(task)
            .then(null,function(){alert("Task modification failed");});};
 
        Task.prototype.delete = function(){
          var task = this;
-         stores[task.store].delete(this).then(
+         task.store.delete(this).then(
            function(){
              if ( task.start===null ) {
                backlog.splice(backlog.indexOf(task), 1);
@@ -64,36 +63,30 @@ angular.module('tasks', ['util'])
                timeline.splice(timeline.indexOf(task), 1);}},
            function(){alert("Task deletion failed");});};
        
-       function newTask(task, storeName){
-         task = new Task(task, storeName);
+       function addTask(task){
          taskMap[task.id] = task;
          if ( task.start===null ) backlog.push(task);
          else timeline.push(task);}
 
        function query(params){
-         var promises = [], storeNames = [];
+         var promises = [];
          angular.forEach(stores, 
-           function(s,n){
-             storeNames.push(n);
-             promises.push(s.query(params));});
+           function(s,n){promises.push(s.query(params));});
          return $q.all(promises).then(
            function(resultsArray){
-             resultsArray.forEach(
+             angular.forEach(resultsArray,
                function(tasks){
-                 var curStore = storeNames.shift();
-                 tasks.forEach(
-                   function(task){
-                    console.log(curStore);
-                    newTask(task, curStore);})});
+                 angular.forEach(tasks,
+                   function(taskProps){addTask(new Task(taskProps));})});
              timeline.sort(taskCmp);});}
        
        this.get = function(tid){return taskMap[tid];};
 
        this.create = function(props) {
          if ( props.start ) props.day = serialDay;               
-         stores[this.createStore].create(new Task(props, this.createStore))
+         this.createStore.create(new Task(props))
            .then(
-            function(task){newTask(task, this.createStore);},
+            function(task){addTask(task);},
             function(){alert("Task creation failed");});};
 
        this.setDay = function(dateObj){
@@ -108,41 +101,46 @@ angular.module('tasks', ['util'])
          if (!delta) return this.setDay(new Date());
          else return this.setDay(new Date(this.date.getTime()-(delta*oneDay)));};
 
-      this.addStore = function(name, storeObj, create){
-        if ( create ) this.createStore = name;
-        this.stores[name] = storeObj;
+      this.addStore = function(storeObj, create){
+        if ( create ) this.createStore = storeObj;
+        this.stores[storeObj.id] = storeObj;
         return this;};
 
-      this.removeStore = function(name){
-        var store = this.stores[name];
+      this.removeStore = function(id){
+        var store = this.stores[id];
         if ( !store ) return false;
-        delete this.stores[name];
+        delete this.stores[id];
         return true;};
   }])
 
   .service('remoteStore',
     ['$http', 'Time', 'Minutes',
      function($http, Time, Minutes){
-       
        var path = '/tasks';
+       var that = this;
        
        function serialize(task){
          var copy = angular.copy(task);
          if ( copy.start ) copy.start = task.start.minutes;
            copy.duration = copy.duration.min;
          delete copy.id;
+         delete copy.store;
          return {task:copy};}
        
        function deserialize(task){
          task.duration = new Minutes(task.duration);
          task.start = task.start ? new Time(task.start) : null;
+         task.store = that;
          return task;}
+
+       this.id = 'remote';
 
        this.create = function(task){
          return $http.post(path+'.json', serialize(task))
            .then(
              function(resp){
                task.id = resp.data.id;
+               task.store = that;
                return task;});};
 
        this.update = function(task){
@@ -161,6 +159,7 @@ angular.module('tasks', ['util'])
   .service('localStore', 
     ['$q', 'date2day', 'Minutes', 'Time',
      function($q, date2day, Minutes, Time){
+      var that = this;
        var store = {
          1:{id:1,day:null,start:null,
            priority:2,
@@ -178,10 +177,15 @@ angular.module('tasks', ['util'])
            duration: new Minutes(60),
            description:null}};
 
+       angular.forEach(store, function(v,k){v.store = that;});
+
        var idCount = 4;
+
+       this.id = 'local';
 
        this.create = function(task){
          task.id = idCount++;
+         task.store = this;
          store[task.id] = task;
          return $q.when(task);};
 
