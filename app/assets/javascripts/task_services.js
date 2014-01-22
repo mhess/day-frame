@@ -1,5 +1,7 @@
 //= require util
 
+var oneDayMs = 1000*60*60*24;
+
 angular.module('tasks', ['util'])
 
   // All operations in this service assume an $apply context
@@ -7,9 +9,8 @@ angular.module('tasks', ['util'])
     ['date2day', 'setPixelFactor', 'Time', 'Minutes', '$q',
      function(date2day, setPixelFactor, Time, Minutes, $q) {
        var taskSvc = this,
-       taskMap = {},
        serialDay,
-       oneDay = 1000*60*60*24;
+       taskMap = {};
 
        var timeline = this.timeline = [];
        var backlog = this.backlog = [];
@@ -71,7 +72,8 @@ angular.module('tasks', ['util'])
        function query(params){
          var promises = [];
          angular.forEach(stores, 
-           function(s,n){promises.push(s.query(params));});
+           function(s,i){
+            promises.push(s.query(params));});
          return $q.all(promises).then(
            function(resultsArray){
              angular.forEach(resultsArray,
@@ -94,16 +96,16 @@ angular.module('tasks', ['util'])
          backlog.splice(0, backlog.length);
          timeline.splice(0, timeline.length);
          taskMap = {};
-         return query({day: serialDay})
+         return query({day: dateObj})
            .then(function(){mutateDate(taskSvc.date, dateObj);});};
 
        this.changeDay = function(delta){
          if (!delta) return this.setDay(new Date());
-         else return this.setDay(new Date(this.date.getTime()-(delta*oneDay)));};
+         else return this.setDay(new Date(this.date.getTime()-(delta*oneDayMs)));};
 
       this.addStore = function(storeObj, create){
         if ( create ) this.createStore = storeObj;
-        this.stores[storeObj.id] = storeObj;
+        if ( !this.stores[storeObj.id] ) this.stores[storeObj.id] = storeObj;
         return this;};
 
       this.removeStore = function(id){
@@ -114,8 +116,8 @@ angular.module('tasks', ['util'])
   }])
 
   .service('remoteStore',
-    ['$http', 'Time', 'Minutes',
-     function($http, Time, Minutes){
+    ['date2day', '$http', 'Time', 'Minutes',
+     function(date2day, $http, Time, Minutes){
        var path = '/tasks';
        var that = this;
        
@@ -151,9 +153,11 @@ angular.module('tasks', ['util'])
          return $http.delete(path+'/'+task.id+'.json');};
        
        this.query = function(params){
-         return $http.get(path+'.json',{params:params})
+         var queryInput = angular.copy(params);
+         queryInput.day = date2day(params.day);
+         return $http.get(path+'.json',{params:queryInput})
            .then(function(resp){
-                   return resp.data.map(deserialize);});};
+              return resp.data.map(deserialize);});};
   }])
 
   .service('localStore', 
@@ -199,11 +203,71 @@ angular.module('tasks', ['util'])
        
        this.query = function(params){
          var result = [];
-         var day = params.day;
+         var day = date2day(params.day);
          angular.forEach(
            store,
            function(task, id){
              if ( task.start===null || task.day===day )
                result.push(task);});
          return $q.when(result);};
+  }])
+
+ .factory('gCalStore',
+  ['$gclient', 'Time', 'Minutes', 'date2day',
+  function($gclient, Time, Minutes, date2day){
+
+    // Assumes timezone on ts is UTC
+    function from3339(ts){
+      var dAndT = ts.split('T'),
+        d = angular.forEach(dAndT[0].split('-'),
+          function(i){return parseInt(i, 10);}),
+        t = angular.forEach(dAndT[1].split(':'), 
+          function(i){return parseInt(i, 10);});
+      return new Date(d[0], d[1]-1, d[2], t[0], t[1]);};
+
+    // Remove data more precise than day
+    function dayOnly(o){
+      var y = o.getFullYear(),
+        m = o.getMonth(),
+        d = o.getDate();
+      return new Date(y,m,d);}
+
+    function deserialize(store, event){
+      var sd = from3339(event.start.dateTime),
+        ed = from3339(event.end.dateTime),
+        st = (new Time()).fromDate(sd),
+        et = (new Time()).fromDate(ed);
+      var task = {
+        id: event.id,
+        title: event.summary,
+        start: st,
+        duration: et.diff(st),
+        priority: 4,
+        description: event.description,
+        day: date2day(sd),
+        store: store};
+      return task;}
+
+    function isNotAllDay(event){return event.start.date === undefined;}
+
+    return function(id){
+      var that = this;
+      var svcPromise = $gclient.load('calendar', 'v3');
+      this.id = id;
+      var queryInput = {calendarId: this.id};
+
+      this.query = function(params){
+        return svcPromise
+          .then(function(svc){
+            var d = params.day;
+            var startDate = dayOnly(d);
+            var endDate = dayOnly(new Date(d.getTime()+oneDayMs));
+            queryInput.timeMin = startDate.toISOString();
+            queryInput.timeMax = endDate.toISOString();
+            return svc.events.list(queryInput);})
+          .then(function(r){
+            if ( !r.items ) return [];
+            return r.items.filter(isNotAllDay).map(
+              function(r){return deserialize(that, r);});});
+      };};
   }]);

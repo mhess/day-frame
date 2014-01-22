@@ -58,7 +58,6 @@ angular.module('bootstrapModal', [])
                     $controller(cfg.ctrl, {$scope: cfg.scope, $close: cfg.close});
                     angular.extend(cfg.scope, promArray[0]);
                     modalContainer.append(cfg.content);
-                    console.log('modal');
                     modalOuter.modal({backdrop:'static', keyboard: false});});
 
                 return cfg.deferred.promise;};});

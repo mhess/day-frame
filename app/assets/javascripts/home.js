@@ -381,8 +381,8 @@ var app = angular.module("app",
       }])
 
   .controller('accountModalCtrl',
-    ['$scope', '$auth', '$close', 
-      function($scope, $auth, $close){
+    ['$scope', '$auth', '$close', '$tasks', 'gCalStore',
+      function($scope, $auth, $close, $tasks, gCalStore){
         $scope.invalid = false;
         $scope.submitError = false;
 
@@ -413,7 +413,14 @@ var app = angular.module("app",
         $scope.close = $close;
         $scope.update = function(){
           $auth.update(u).then(
-            function(){ $close();}, 
+            function(){
+              var change = false;
+              angular.forEach(u.gcals, function(c){
+                if ( !$tasks.stores[c.id] ) {
+                  $tasks.addStore(new gCalStore(c.id));
+                  change = true;}});
+              if ( change ) $tasks.changeDay();
+              $close();}, 
             function(errors){
               $scope.submitError = true;
               angular.forEach(errors, function(v,k) {
@@ -500,12 +507,11 @@ var app = angular.module("app",
   .controller('googleCalSelectCtrl', 
     ['$scope', '$gclient',
     function($scope, $gclient){
-      var cals = {};
+      var cals;
       $scope.state = 1;
 
       $scope.$on('userReady', function(){
         cals = $scope.cals = angular.copy($scope.user.gcals);
-        console.log(cals);
         if ( cals.empty ) $scope.state = 0;
         else $scope.init();});
 
@@ -520,9 +526,7 @@ var app = angular.module("app",
             function(){$scope.state = 0;})
           .then(function(resp){
             angular.forEach(resp.items, function(c){
-              if ( !cals[c.id] ) cals[c.id] = c;
-              else console.log(cals[c.id].summary);
-            });
+              if ( !cals[c.id] ) cals[c.id] = c;});
             $scope.state = 2;});};
 
       $scope.toggle = function(c){
