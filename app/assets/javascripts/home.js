@@ -154,21 +154,24 @@ var app = angular.module("app",
             if ( scope.drag ) val += ' drag';
             return val;
           };
+
+          // Task is not draggable/resizable if not editable
+          if ( !task.editable ) return;
           
           // Set CSS/draggable based on whether assigned or not
           if (task.start!==null) {
             el.draggable({containment:'.time-droppable'});
             el.resizable({handles: 's', grid: [0, 5],
-                          containment:'parent',
-                          resize: function(e,ui){
-                            scope.$apply(
-                              function(){task.duration.fromPx(closest5(ui.size.height));}
-                            );},
-                          start: function(){scope.resize=true;},
-                          stop: function(){
-                            scope.$apply(
-                              function() {task.update(); scope.resize=false;});
-                          }});
+              containment:'parent',
+              resize: function(e,ui){
+                scope.$apply(
+                  function(){task.duration.fromPx(closest5(ui.size.height));}
+                );},
+              start: function(){scope.resize=true;},
+              stop: function(){
+                scope.$apply(
+                  function() {task.update(); scope.resize=false;});
+              }});
           } else {
             el.draggable(
               {containment: "document",
@@ -592,6 +595,7 @@ var app = angular.module("app",
              return $q.when(config)},
            responseError: function(resp){
              if ( resp.status===401 && !resp.config.ignored ) {
+               // // FIXME: Commented out because issues with devise
                // // Ignore response from all pending requests
                // $inj.get('$http').pendingRequests
                //   .forEach(function(cfg){

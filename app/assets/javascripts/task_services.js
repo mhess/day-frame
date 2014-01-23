@@ -124,26 +124,27 @@ angular.module('tasks', ['util'])
        function serialize(task){
          var copy = angular.copy(task);
          if ( copy.start ) copy.start = task.start.minutes;
-           copy.duration = copy.duration.min;
+         copy.duration = copy.duration.min;
          delete copy.id;
          delete copy.store;
+         delete copy.editable;
          return {task:copy};}
        
        function deserialize(task){
          task.duration = new Minutes(task.duration);
          task.start = task.start ? new Time(task.start) : null;
          task.store = that;
+         task.eitable = true;
          return task;}
 
        this.id = 'remote';
 
        this.create = function(task){
          return $http.post(path+'.json', serialize(task))
-           .then(
-             function(resp){
-               task.id = resp.data.id;
-               task.store = that;
-               return task;});};
+           .then(function(resp){
+             task.id = resp.data.id;
+             task.store = that;
+             return task;});};
 
        this.update = function(task){
          return $http.put(path+'/'+task.id+'.json', serialize(task))
@@ -164,7 +165,7 @@ angular.module('tasks', ['util'])
     ['$q', 'date2day', 'Minutes', 'Time',
      function($q, date2day, Minutes, Time){
       var that = this;
-       var store = {
+       var tasks = {
          1:{id:1,day:null,start:null,
            priority:2,
            title:"Take Gladys for a walk",
@@ -181,7 +182,9 @@ angular.module('tasks', ['util'])
            duration: new Minutes(60),
            description:null}};
 
-       angular.forEach(store, function(v,k){v.store = that;});
+       angular.forEach(tasks, function(t,i){
+        t.store = that;
+        t.editable = true;});
 
        var idCount = 4;
 
@@ -190,22 +193,22 @@ angular.module('tasks', ['util'])
        this.create = function(task){
          task.id = idCount++;
          task.store = this;
-         store[task.id] = task;
+         tasks[task.id] = task;
          return $q.when(task);};
 
        this.update = function(task){
-         store[task.id] = angular.copy(task);
+         tasks[task.id] = angular.copy(task);
          return $q.when(task);};
 
        this.delete = function(task){
-         delete store[task.id];
+         delete tasks[task.id];
          return $q.when(null);};
        
        this.query = function(params){
          var result = [];
          var day = date2day(params.day);
          angular.forEach(
-           store,
+           tasks,
            function(task, id){
              if ( task.start===null || task.day===day )
                result.push(task);});
