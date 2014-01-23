@@ -134,7 +134,7 @@ angular.module('tasks', ['util'])
          task.duration = new Minutes(task.duration);
          task.start = task.start ? new Time(task.start) : null;
          task.store = that;
-         task.eitable = true;
+         task.editable = true;
          return task;}
 
        this.id = 'remote';
@@ -144,6 +144,7 @@ angular.module('tasks', ['util'])
            .then(function(resp){
              task.id = resp.data.id;
              task.store = that;
+             task.editable = true;
              return task;});};
 
        this.update = function(task){
