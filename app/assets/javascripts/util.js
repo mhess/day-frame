@@ -1,7 +1,29 @@
+(function(){
 var pixelFactor;
 function setPixelFactor(factor){
   pixelFactor = factor;
 };
+
+var docEl = document.documentElement;
+var $doc = $(document);
+
+function affixTop($el, className, rel){
+  relEl = rel ? $el.parent() : $el;
+  var fixed = false,
+    top = relEl.offset().top;
+  if ( top < docEl.scrollTop ) {
+    fixed = true;
+    $el.addClass(className);}
+  $doc.on('scroll.myAffixTop',
+    function(){
+      if ( fixed ) {
+        if ( docEl.scrollTop < top ){
+          fixed = false;
+          $el.removeClass(className);}
+        } else if ( docEl.scrollTop >= top ){
+          fixed = true;
+          $el.addClass(className);}});
+  return function(){$doc.off('scroll.myAffixTop')}}
 
 // Time constructor
 function Time(init, wake){
@@ -30,6 +52,10 @@ Time.prototype.fromForm = function(str){
   var hrs = parseInt(arr[0]);
   var min = parseInt(arr[1]);
   this.minutes = (hrs*60)+min;
+  return this;
+};
+Time.prototype.fromTime = function(time){
+  this.minutes = time.minutes;
   return this;
 };
 Time.prototype.fromDate = function(date){
@@ -99,6 +125,9 @@ Minutes.prototype.withHrs = function()  {
 Minutes.prototype.fromPx = function(pixels) {
   this.min = pixels / pixelFactor;
 };
+Minutes.prototype.fromMinutes= function(min){
+  this.min = min.min; return this;
+};
 Minutes.prototype.pixels = function() {
   return this.min * pixelFactor;  
 };
@@ -122,12 +151,21 @@ function closest15(i){
   i = Math.round(i);
   mod = i % 15;
   if ( mod ) i = mod > 3 ? i+15-mod : i-mod;
-  return i;  
+  return i;
 }
+
+function closest(i, n){
+  n = Math.round(n);
+  mod = n % i;
+  return mod ? (mod > (i>>1) ? n+i-mod : n-mod) : n;}
 
 angular.module('util', [])
 
   .value('setPixelFactor', setPixelFactor)
+
+  .value('closest', closest)
+
+  .value('affixTop', affixTop)
 
   .value('Time', Time)
 
@@ -145,3 +183,4 @@ angular.module('util', [])
 	   }
 	   return hrs;
 	 });
+})();

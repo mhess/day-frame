@@ -4,7 +4,7 @@
     <div class="navbar-text">
       <div class="day-widget">
         <a class="glyphicon glyphicon-chevron-left" ng-click="tasks.changeDay(1)"></a>
-        {{tasks.date | date:"EEE MMM d, yyyy"}}
+          <div class="date-display">{{tasks.date | date:"EEE MMM d, yyyy"}}</div>
         <a class="glyphicon glyphicon-chevron-right" ng-click="tasks.changeDay(-1)"></a>
       </div>
       <div class="day-info text-center">{{dayText}} <a ng-click="tasks.changeDay()">today</a>.</div>

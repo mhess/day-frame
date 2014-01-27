@@ -169,7 +169,7 @@ angular.module('tasks', ['util'])
        var tasks = {
          1:{id:1,day:null,start:null,
            priority:2,
-           title:"Take Gladys for a walk",
+           title:"Take the dog for a walk",
            duration: new Minutes(30),
            description:"Check out the new park down the street."},
          2:{id:2,day:null,start:null,
@@ -194,6 +194,7 @@ angular.module('tasks', ['util'])
        this.create = function(task){
          task.id = idCount++;
          task.store = this;
+         task.editable = true;
          tasks[task.id] = task;
          return $q.when(task);};
 

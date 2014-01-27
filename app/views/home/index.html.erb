@@ -3,7 +3,29 @@
   <%= render "welcome" %>
 
   <div class="dayframe clearfix">
-
+    <div class="instructions" ng-hide="auth.user">
+      <div id="inst-day" class="instruction">
+        <p>Change the day by clicking the arrows.</p>
+        <div class="arrow right">
+          <div class="arrow-body"></div>
+          <div class="arrow-head"></div>
+        </div>
+      </div>
+      <div id="inst-drag1" class="instruction">
+        <p>To assign a task for today simply drag it from here...</p>
+        <div class="arrow right">
+          <div class="arrow-body"></div>
+          <div class="arrow-head"></div>
+        </div>
+      </div>
+      <div id="inst-drag2" class="instruction">
+        <p>...to here</p>
+        <div class="arrow left">
+          <div class="arrow-body"></div>
+          <div class="arrow-head"></div>
+        </div>
+      </div>
+    </div>
     <div class="working-area">
 
       <div class="timeline clearfix">
@@ -13,17 +35,19 @@
             {{hour}}
           </div>
         </div>
-        
+
+        <div class="snap"></div>      
         <div class="time-droppable">
           <div class="hour" ng-repeat="hour in hours">
-            <div class="snap"></div>
-            <div class="snap"></div>
-            <div class="snap"></div>
-            <div class="snap"></div>
+            <div class="fifteen"></div>
+            <div class="fifteen"></div>
+            <div class="fifteen"></div>
+            <div class="fifteen"></div>
           </div>
           <task class="assigned" ng-repeat="task in tasks.timeline"></task>
           <div id="now-marker"><div class="pointer"></div></div>
         </div>
+
 
       </div>
     </div>

@@ -101,50 +101,50 @@ var app = angular.module("app",
 
   }])
 
-  .directive('task', ['$compile',
-    function($compile) {
+  .directive('task', ['$compile', 'closest', 'Time', 'Minutes',
+    function($compile, closest, Time, Minutes) {
       return {
         restrict: 'E',
         templateUrl: 'angular/task.html',
         replace: true,
-        controller: ['$scope', function($scope) {
-          $scope.duration = null;
-          $scope.$watch('task.duration',
-            function(d) {$scope.duration = d.toString();},
-            true);}],
         link: function(scope, el) {
+          var snapTolerance = 60;
           var timeDroppable = $('.time-droppable');
           var task = scope.task;
 
-          // Scoped variables that determine the
-          // element's height and displayed range.
+          scope.start = task.start ? new Time(task.start.minutes) : null;
+          scope.duration = new Minutes(task.duration.min);
+          scope.style = {};
           scope.drag = false;
           scope.resize = false;
           
           scope.range = function() {
-            if ( !task.start ) return '';
-            var begin = task.start,
-                end = task.start.add(task.duration);
-            return begin+' - '+end;
-          };                                   
+            if ( !scope.start ) return '';
+            var begin = scope.start,
+                end = scope.start.add(scope.duration);
+            return begin+' - '+end;};
 
-          // Set task element style according to model object
-          // properties (start, duration)
-          scope.getStyle = function() {
-            var styles = {};
-            if (scope.drag || task.start !== null) {
-              styles.height = task.duration.pixels();
-              if ( task.start!==null )
-                angular.extend(
-                  styles,
-                  {top: task.start.toOffset(scope.wake),
-                   left: 0, height: task.duration.pixels()});
-              if ( styles.height < ( 8 + 14 ) ) {
-                styles.fontSize = styles.height - 8;
-              }
-            }
-            return styles;
-          };
+          function setHeight(h){
+            var style = scope.style;
+            if ( h ) {
+              style.height = h;
+              if ( style.height < ( 8+14 ) ) style.fontSize = style.height-8;
+            } else style.height = style.fontSize = null;};
+
+          scope.$watch('drag', function(d){
+            if ( !task.start ) {              
+              if ( d ) setHeight(task.duration.pixels());
+              else setHeight(null);}});
+
+          scope.$watch('task.duration', 
+            function(d){
+              if (task.start) setHeight(d.pixels());},
+            true);
+
+          scope.$watch('task.start', 
+            function(s){
+              if ( s ) scope.style.top = task.start.toOffset(scope.wake);}, 
+            true);
           
           scope.getClass = function (){
             var val = 'pri-'+task.priority,
@@ -152,8 +152,7 @@ var app = angular.module("app",
             if ( height < (6+28) ) val += ' single-line';
             if ( task.start===null ) val += ' clearfix';
             if ( scope.drag ) val += ' drag';
-            return val;
-          };
+            return val;};
 
           // Task is not draggable/resizable if not editable
           if ( !task.editable ) return;
@@ -164,17 +163,19 @@ var app = angular.module("app",
             el.resizable({handles: 's', grid: [0, 5],
               containment:'parent',
               resize: function(e,ui){
-                scope.$apply(
-                  function(){task.duration.fromPx(closest5(ui.size.height));}
-                );},
+                scope.$apply(function(d){
+                  scope.duration.fromPx(closest(5, ui.size.height));});},
               start: function(){scope.resize=true;},
-              stop: function(){
+              stop: function(e,ui){
+                setTimeout(function(){
                 scope.$apply(
-                  function() {task.update(); scope.resize=false;});
-              }});
+                  function(){
+                    scope.resize=false;
+                    task.duration.fromPx(closest(5, ui.size.height));
+                    task.update();});});}});
           } else {
             el.draggable(
-              {containment: "document",
+              {containment: ".dayframe",
                helper: function() {
                  var clone = $(this).clone().removeAttr('ng-repeat');
                  scope.$apply(
@@ -191,39 +192,41 @@ var app = angular.module("app",
             {cancel: '.control',
              snap: ".snap",
              snapMode: "inner",
-             snapTolerance: 25,
+             snapTolerance: snapTolerance,
              revert: 'invalid',
              start: function(e, ui){
-               if ( task.start===null ) el.hide();
+               if ( !task.start ) el.hide();
                scope.$apply('drag=true'); },
              stop: function(e, ui){
-               if ( task.start===null ) el.show();
-               scope.$apply('drag=false'); },
+               console.log('stop');
+               if ( !scope.start ) el.show();
+               else {
+                 setTimeout(function(){scope.$apply(function(){
+                   if ( task.start ) task.start.fromTime(scope.start);
+                   else task.start = new Time(scope.start.minutes);
+                   el.css('top', scope.start.toOffset(scope.wake));
+                   task.update();});});}
+               scope.$apply('drag=false');},
              drag: function(e, ui) {
                var dLeft = ui.offset.left,
                    tLeft = timeDroppable.offset().left;
-               if ( Math.abs(dLeft-tLeft) <= 25 ) {
-                 var offset = ui.helper.offset().top - timeDroppable.offset().top;
-                 offset = closest15(offset);
+               if ( Math.abs(dLeft-tLeft) <= snapTolerance ) {                 
+                 var dTop = ui.helper.offset().top, 
+                   offset = dTop - timeDroppable.offset().top;
+                 offset = closest(5, offset);
+                 console.log('drag', offset);
                  scope.$apply(
                    function(){
-                     if ( task.start ) task.start.fromOffset(offset, scope.wake);
-                     else task.start = new Time(offset, scope.wake);});
-               } else {
-                 scope.$apply(function(){task.start=null;});
-               }
-             }
-            });
-        }};}])
+                     if ( scope.start ) scope.start.fromOffset(offset, scope.wake);
+                     else scope.start = new Time(offset, scope.wake);});
+               } else scope.$apply(function(){scope.start=null;});
+          }});
+  }};}])
 
-  .directive('timeDroppable', function() {
-    return {
+  .directive('timeDroppable', 
+    function() {return {
       restrict: 'C',
-      link: function(scope, el) {                        
-        el.droppable(
-          {drop: function (event, ui) {
-            var taskScope = ui.draggable.scope();
-            setTimeout(function(){taskScope.$apply('task.update()');});}});}};})
+      link: function(scope, el) {el.droppable();}};})
 
   .directive('hourSelect',
     ['$tasks', function($tasks) {
@@ -245,8 +248,8 @@ var app = angular.module("app",
              $scope.time.addIn(-60);};}]};}])
 
   .controller('taskModalCtrl',
-    ['$scope', '$close', 'Time', 'Minutes', '$tasks',
-    function($scope, $close, Time, Minutes, $tasks) {
+    ['$scope', '$close', 'Time', 'Minutes', '$tasks', 'closest',
+    function($scope, $close, Time, Minutes, $tasks, closest) {
       $scope.tmpl = {};
       $scope.dur = {hr: null, min: null};
       $scope.invalid = false;
@@ -284,7 +287,7 @@ var app = angular.module("app",
 
       $scope.save = function() {
         var tmpl = $scope.tmpl;
-        tmpl.duration = new Minutes($scope.dur.hr, closest5($scope.dur.min));
+        tmpl.duration = new Minutes($scope.dur.hr, closest(5, $scope.dur.min));
         tmpl.start = tmpl.start ? new Time(tmpl.start) : null;
         tmpl.priority = parseInt(tmpl.priority);
         if ( 'id' in tmpl ) // Editing existing task
@@ -384,8 +387,8 @@ var app = angular.module("app",
       }])
 
   .controller('accountModalCtrl',
-    ['$scope', '$auth', '$close', '$tasks', 'gCalStore',
-      function($scope, $auth, $close, $tasks, gCalStore){
+    ['$scope', '$auth', '$close', '$tasks', 'gCalStore', 'Time',
+      function($scope, $auth, $close, $tasks, gCalStore, Time){
         $scope.invalid = false;
         $scope.submitError = false;
 
@@ -482,30 +485,31 @@ var app = angular.module("app",
   })
 
   .directive('widgetArea',
-    ['$auth', '$window',
-      function($auth, $window){
-        return {restrict: 'C',
-          link: function($scope, $el){
-            var myWindow = angular.element($window);
-            var fixedClass = 'fixed-top';
-            if ( !$scope.welcome ){
-              $el.addClass('fixed-top');
-              myWindow.off('scroll.fixWidgetArea');
-            // Affix logic
-            } else {
-              var fixed = false;
-              var top = $el.offset().top;
-              myWindow.on('scroll.fixWidgetArea', function(){
-                if ( fixed ) {
-                  if ( myWindow.scrollTop() < top ){
-                    fixed = false;
-                    $el.removeClass(fixedClass);}
-                  } else if ( myWindow.scrollTop() >= top ){
-                    fixed = true;
-                    $el.addClass(fixedClass);}});}
+    ['affixTop',
+    function(affixTop){
+      return {
+        restrict: 'C',
+        link: function($scope, $el){
+          //var myWindow = angular.element($window);
+          var fixedClass = 'fixed';
+          if ( !$scope.welcome ) $el.addClass(fixedClass);
+          else {
+            var offFun = affixTop($el, fixedClass, true);
             $scope.$on('fixWidgetArea', function(){
               $el.addClass(fixedClass);
-              myWindow.off('scroll.fixWidgetArea');});}};}])
+              offFun();});}}};
+  }])
+
+  .directive('instruction', ['affixTop',
+    function(affixTop){ return {
+      restrict: 'C',
+      link: function($scope, $el){
+        var fixedClass = "fixed";
+        if ( !$scope.welcome ) $el.addClass(fixedClass);
+        else {
+          var offFun = affixTop($el, fixedClass, true);
+          $scope.$on('fixWidgetArea', function(){offFun();});}}};
+  }])
 
   .controller('googleCalSelectCtrl', 
     ['$scope', '$gclient',
@@ -628,7 +632,7 @@ var app = angular.module("app",
         function(i){$cookieStore.remove(i);});
 
       // Attach logout function to rootScope.
-      $rootScope.logOut = function(){$auth.logOut()
-        .then(function(){window.location.reload()});};
+      $rootScope.logOut = function(){
+        $auth.logOut().then(function(){window.location.reload()});};
 
   }]);

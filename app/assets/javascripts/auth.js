@@ -3,8 +3,8 @@
 
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
-  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 'remoteStore',
-  function($http, $rootScope, $window, $modals, $tasks, $q, remoteStore) {
+  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 'remoteStore', 'Time',
+  function($http, $rootScope, $window, $modals, $tasks, $q, remoteStore, Time) {
 
     var that = this;
 
