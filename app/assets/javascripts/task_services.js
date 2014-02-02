@@ -27,9 +27,7 @@ angular.module('tasks', ['util'])
          return 0;}
 
        function mutateDate(self, other) {
-         self.setFullYear(other.getFullYear());
-         self.setMonth(other.getMonth());
-         self.setDate(other.getDate());
+         self.setTime(other.getTime());
          return self;}
        
        function Task(props){
@@ -101,7 +99,8 @@ angular.module('tasks', ['util'])
 
        this.changeDay = function(delta){
          if (!delta) return this.setDay(new Date());
-         else return this.setDay(new Date(this.date.getTime()-(delta*oneDayMs)));};
+         else
+          return this.setDay(new Date(this.date.getTime()-(delta*oneDayMs)));};
 
       this.addStore = function(storeObj, create){
         if ( create ) this.createStore = storeObj;
