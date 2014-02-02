@@ -139,21 +139,6 @@ Minutes.prototype.toString = function() {
   return arr.join(' ');
 };
 
-
-function closest5(i){
-  i = Math.round(i);
-  mod = i % 5;
-  if ( mod ) i = mod > 3 ? i+5-mod : i-mod;
-  return i;
-}
-
-function closest15(i){
-  i = Math.round(i);
-  mod = i % 15;
-  if ( mod ) i = mod > 3 ? i+15-mod : i-mod;
-  return i;
-}
-
 function closest(i, n){
   n = Math.round(n);
   mod = n % i;
@@ -176,11 +161,10 @@ angular.module('util', [])
 	 })
 
   .value('hoursArray', function(wake, sleep){
-           var time = angular.copy(wake);
-	   var hrs = [];
-	   for (; time.lt(sleep); time.addIn(60) ) {
-	     hrs.push(time.toString());
-	   }
-	   return hrs;
+    var time = angular.copy(wake);
+	  var hrs = [];
+	  for (; time.lt(sleep); time.addIn(60) ) {
+	    hrs.push(time.toString());}
+	 return hrs;
 	 });
 })();

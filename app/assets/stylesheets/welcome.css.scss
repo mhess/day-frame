@@ -1,7 +1,81 @@
+@import "compass/css3";
+
 .welcome {
+  position: relative;
   padding: 20px;
   background: rgba(238, 238, 238, 1);
+  border-bottom: 1px solid black;
+
+  p,li { font-weight: bold; }
   h1 { margin-top: initial; }
+  h2 { margin-bottom: 20px; }
+}
+
+.nav-links { 
+  text-align: right;
+  font-size: 16px;
+  a { margin: 0 3px; }
+}
+
+.features li { margin-bottom: 10px; }
+
+.ror { color: #A94442; }
+
+.intro p { text-align: justify; }
+
+// Logo //
+
+.logo {
+  text-align: center;
+  height: 70px;
+  width: 240px;
+  position: relative;
+  margin: 0 auto 15px;
+  h1 {
+    font-size: 40px;
+    line-height: 66px;
+  }
+}
+.logo-frame {
+  position: absolute;
+  background-color: #333;
+  @include box-shadow(6px 6px 3px #C5C4C4);
+  &.top { 
+    height: 6px; 
+    width: 100%;
+    top: 0;
+  }
+  &.bottom { 
+    height: 6px; 
+    width: 100%;
+    bottom: 0;
+  }
+  &.left {
+    width: 6px;
+    left: 0; top: 6px;
+    height: 60px;
+  }
+  &.right {
+    width: 6px;
+    height: 60px;
+    right: 0; bottom: 6px;
+  }
+}
+
+// Built With //
+
+.under-hood {
+  font-size: 16px;
+  img { 
+    max-height: 40px;
+    max-width: 162px;
+  }
+  .row { margin-bottom: 15px; }
+  .col-xs-6 {
+    height: 40px;
+    &:last-child { text-align: left; }
+    &:first-child { text-align: right; }
+  }
 }
 
 // Login Form //

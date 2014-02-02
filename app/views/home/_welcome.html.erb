@@ -1,43 +1,68 @@
 <div class="welcome clearfix" ng-show="welcome">
-  <div class="pull-left text-center">
-    <h1>Welcome to DayFrame!</h1>
-    <p>DayFrame is a web application that helps you plan out your day!</p>
-    <p>It provides an easy-to-use drag-n-drop interface.</p>
-    <p>Go ahead and try it below!</p>
+  <div class="container" style="width: 1150px;">    
+    <div class="row">
+      <div class="col-xs-4 col-xs-offset-4">
+        <div class="logo">
+          <h1>DayFrame</h1>
+          <div class="logo-frame top"></div>
+          <div class="logo-frame right"></div>
+          <div class="logo-frame left"></div>
+          <div class="logo-frame bottom"></div>
+        </div>
+      </div>
+      <div class="col-xs-4">
+        <p class="nav-links"><a ng-click="modals.logIn()">Log in</a> or <a ng-click="modals.signUp()">Sign up</a></p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-4 intro">
+        <h2 class="text-center">What's this?</h2>
+        <p>
+          DayFrame is my first single-page web app that I've built in the process of teaching myself front end development. I chose this project because I have a lot of difficulty planning out my day if I can't see it laid out in front of me.
+        </p>
+        <p>
+          Google calendar and tasks were almost what I wanted, but there wasn't enough integration between the two&mdash;so I decided to fill in the gaps!
+        </p>
+      </div>
+      <div class="col-xs-4 features">
+        <h2 class="text-center">Features</h2>
+        <ul>
+          <li>A list of tasks outstanding sorted by priority.</li>
+          <li>Drag and drop of tasks onto a timeline.</li>
+          <li>Dynamic resizing of scheduled tasks.</li>
+          <li>Automatic import of events from Google Calendar.</li>
+        </ul>
+      </div>
+      <div class="col-xs-4 under-hood">
+        <h2 class="text-center">Under the Hood</h2>
+        <div class="row">
+          <div class="col-xs-6">
+            <a href="http://angularjs.org"><%= image_tag "angularjs.png" %></a>
+          </div>
+          <div class="col-xs-6">
+            <a href="http://jqueryui.com"><%= image_tag "jqueryui.png" %></a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-6">
+            <a href="http://rubyonrails.org">
+              <%= image_tag "rails.png" %>
+              <span class="ror">Ruby on Rails</span>
+            </a>
+          </div>
+          <div class="col-xs-6">
+            <a href="http://getbootstrap.com"><%= image_tag "bootstrap.png" %></a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <p class="text-center">View on <a href="https://github.com/mhess/day-frame">Github</a>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12">
+        <h3 class="text-center">Go ahead and try it out below!</h3>
+      </div>
+    </div>
   </div>
-
-  <form class="login-form clearfix">
-
-    <div class="controls">
-      <div class="top-row">
-        <div class="form-group">
-          <input autofill name="email" ng-model="signInFields.email" type="email" class="form-control" placeholder="email">
-        </div>
-
-        <div class="form-group">
-          <input autofill name="password" ng-model="signInFields.passwd" type="password" class="form-control" placeholder="password">
-        </div>
-      </div>
-
-      <div class="bottom-row">
-        <div class="form-group">
-          <label class="below">
-            <input type="checkbox" ng-model="signInFields.remember"> Remember me
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label class="below">Forgot your <a ng-click="modals.forgot()">password?</a></label>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="submit">
-      <a ng-click="logIn()">Log In</a>
-      <span>|</span>
-      <a ng-click="modals.signUp()">Sign Up</a>
-    </div>
-
-  </form>
 </div>
