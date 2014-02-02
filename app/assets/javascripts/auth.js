@@ -3,10 +3,26 @@
 
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
-  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 'remoteStore', 'Time',
-  function($http, $rootScope, $window, $modals, $tasks, $q, remoteStore, Time) {
+  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 
+   'remoteStore', 'Time', 
+  function($http, $rootScope, $window, $modals, $tasks, $q, 
+    remoteStore, Time, $cookieStore) {
 
     var that = this;
+
+    function deserializeUserInfo(info){
+      return {
+        name: info.name,
+        wake: new Time(info.wake),
+        sleep: new Time(info.sleep),
+        gcals: info.gcals};}
+
+    function serializeUserInfo(info){
+      return {
+        name: info.name,
+        wake: info.wake.minutes,
+        sleep: info.sleep.minutes,
+        gcals: info.gcals};}
 
     //FIXME: This probably doesn't belong here.
     this.logInTransition = function(){
@@ -18,8 +34,8 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
             $tasks.addStore(remoteStore).changeDay();
             $rootScope.$broadcast('fixWidgetArea');
             $rootScope.welcome = false;});
-            $rootScope.wake = new Time(that.user.wake);
-            $rootScope.sleep = new Time(that.user.sleep);
+            $rootScope.wake = that.user.wake;
+            $rootScope.sleep = that.user.sleep;
             deferred.resolve();});
       return deferred.promise;}
 
@@ -35,6 +51,13 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         utf8: "✓",
         user: null};
 
+    this.init = function(userInfo){
+      if ( userInfo ) {
+        this.user = deserializeUserInfo(userInfo);
+        $tasks.addStore(remoteStore, true);}
+      else $tasks.addStore(localStore, true);
+    };
+
     this.logIn = function(fields) {
       fields.rem = fields.rem ? 1 : 0;
       postData.user = {
@@ -45,8 +68,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.post(this.logInPath, postData)
         .then(
           function(resp){
-            that.user = resp.data;
-            that.user.gcals = {empty:1};
+            that.user = deserializeUserInfo(resp.data);
             return resp.data;},
           function(resp){return $q.reject(resp.data);});};
 
@@ -58,8 +80,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.post(this.registerPath, postData)
         .then(
           function(resp){
-            that.user = resp.data;
-            that.user.gcals = {empty:1};
+            that.user = deserializeUserInfo(resp.data);
             return resp.data;},
           function(resp){
             return $q.reject(resp.data.errors);});};
@@ -68,21 +89,15 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.delete(that.signOutPath);};
 
     this.update = function(usr){
-      if (usr.gcals) this.user.gcals = usr.gcals;
       postData.commit = "Update";
-      postData.user = {
-        name: usr.name,
-        wake: usr.wake.minutes,
-        sleep: usr.sleep.minutes}
-
+      postData.user = serializeUserInfo(usr);
       return $http.put(this.registerPath, postData)
         .then(
           function(resp){
             angular.extend(that.user, resp.data);
             return resp.data;},
           function(resp){
-            return $q.reject(resp.data.errors);})
-    };
+            return $q.reject(resp.data.errors);});};
 
     this.forgot = function(email){
       postData.commit = 'Send me reset password instructions';
