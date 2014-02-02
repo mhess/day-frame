@@ -48,7 +48,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
             that.user = resp.data;
             that.user.gcals = {empty:1};
             return resp.data;},
-          function(resp){$q.reject(resp.data);});};
+          function(resp){return $q.reject(resp.data);});};
 
     this.signUp = function(usr){
       postData.user = usr;

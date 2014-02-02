@@ -14,7 +14,7 @@
         <div class="form-group email" ng-class="errors.email && 'has-error'">
           <label class="control-label">Email:</label>
           <div class="feedback">
-            <input class="form-control" type="email" name="email" ng-model="user.email" required>
+            <input autofill class="form-control" type="email" name="email" ng-model="user.email">
             <div class="help-block">{{errors.email}} </div>
           </div>
         </div>
@@ -22,7 +22,7 @@
         <div class="form-group passwd" ng-class="errors.passwd && 'has-error'">
           <label class="control-label">Password:</label>
           <div class="feedback">
-            <input class="form-control" type="password" name="passwd" ng-model="user.passwd">
+            <input autofill class="form-control" type="password" name="passwd" ng-model="user.passwd">
             <div class="help-block">{{errors.passwd}}</div>
           </div>
         </div>

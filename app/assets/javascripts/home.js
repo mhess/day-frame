@@ -23,18 +23,6 @@ var app = angular.module("app",
         $scope.tasks = $tasks;
         $scope.signInFields = {email: null, passwd: null};
         $scope.dayText = "That's";
-        
-        $scope.logIn = function() {
-          var fields = $scope.signInFields;
-          $scope.$broadcast('autofill:update');
-          $auth.logIn(fields)
-            .then(
-             function(){$auth.logInTransition();},
-             function(respObj) {
-               if ( 'errors' in respObj ) {
-                 console.log(respObj.errors);
-                 return;}
-               delete $scope.signInFields;});};
 
         function initWakeSleep(){
           var u = $auth.user;
@@ -198,7 +186,6 @@ var app = angular.module("app",
                if ( !task.start ) el.hide();
                scope.$apply('drag=true'); },
              stop: function(e, ui){
-               console.log('stop');
                if ( !scope.start ) el.show();
                else {
                  setTimeout(function(){scope.$apply(function(){
@@ -214,7 +201,6 @@ var app = angular.module("app",
                  var dTop = ui.helper.offset().top, 
                    offset = dTop - timeDroppable.offset().top;
                  offset = closest(5, offset);
-                 console.log('drag', offset);
                  scope.$apply(
                    function(){
                      if ( scope.start ) scope.start.fromOffset(offset, scope.wake);
@@ -334,6 +320,7 @@ var app = angular.module("app",
 
           for ( var k in errs ){
             if ( errs[k] || !u[k] ){$scope.invalid = true; return;}}
+          $scope.submitError = false;
           $scope.invalid = false;});
 
         $scope.close = $close;
@@ -350,41 +337,26 @@ var app = angular.module("app",
 
   .controller('logInModalCtrl', 
     ['$scope', '$auth', '$close', 
-      function($scope, $auth, $close){
-        $scope.invalid = true;
+    function($scope, $auth, $close){
+      $scope.invalid = true;
+      $scope.submitError = false;
+      var fields = $scope.fields = {email:null, passwd:null};
+
+      $scope.$watchCollection('fields', function(f){
+        if ( f.email && f.passwd ) $scope.invalid = false;
+        else $scope.invalid = true;});
+
+      $scope.close = $close;
+
+      $scope.logIn = function(){
         $scope.submitError = false;
-        var fields = $scope.fields = {email:null, passwd:null};
-
-        var errs = $scope.errors = {email:null, passwd:null};
-
-        $scope.$watchCollection('fields', function(f){
-          if ( !fields.email && $scope.form.email.$dirty )
-            errs.email = "Email is invalid!";
-          else errs.email = null;
-
-          if ( $scope.form.passwd.$dirty ) {
-            if ( fields.passwd.length < 8 ) {
-              errs.passwd = "Password must be at least 8 characters!";
-            } else errs.passwd = null;
-          }
-
-          for ( var k in errs ){
-            if ( errs[k] || !fields[k] ){$scope.invalid = true; return;}}
-          $scope.invalid = false;});
-
-        $scope.close = $close;
-
-        $scope.logIn = function(){
-          $auth.logOut()
-            .then(
-              function(){return $auth.logIn(fields);})
-            .then(
-              function(){$close();}, 
-              function(errors){
-                $scope.submitError = true;
-                angular.forEach(errors, function(v,k){
-                  errs[k] = "This "+k+" "+v+".";});});};
-      }])
+        $auth.logIn(fields)
+          .then(
+            function(){
+              $close();
+              $auth.logInTransition();},
+            function(){$scope.submitError = true;});};
+  }])
 
   .controller('accountModalCtrl',
     ['$scope', '$auth', '$close', '$tasks', 'gCalStore', 'Time',
@@ -476,13 +448,20 @@ var app = angular.module("app",
             function(i){return i ? i.toForm() : null;});}};
   })
 
-  .directive("autofill", function () {
-    return {
-      require: "ngModel",
-      link: function ($scope, el, a, ctrl) {
-          $scope.$on("autofill:update", 
-            function(){ctrl.$setViewValue(el.val());});}};
-  })
+  .directive("autofill", 
+    ['$timeout', '$interval', 
+    function ($timeout, $interval) {
+      return {
+        require: "ngModel",
+        link: function ($scope, el, a, ctrl) {
+          var v;
+          function fill(){
+            v = el.val();
+            v && ctrl.$setViewValue(v);}
+          $timeout(fill, 200);
+          var p = $interval(fill, 1000);
+          el.on('$destroy', function(){$interval.cancel(p);});}};
+  }])
 
   .directive('widgetArea',
     ['affixTop',

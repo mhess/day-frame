@@ -22,6 +22,7 @@ angular.module('bootstrapModal', [])
         modalContainer = modalOuter.find('.modal-dialog');
         angular.forEach(modals,
           function(cfg, name) {
+            var getOpts = $window.location.host.match(/^localhost/) ? {} :{cache: $templateCache};
 
             // $close function added to scope that resolves the modal's promise
             cfg.close = function(val, err) {
@@ -31,21 +32,19 @@ angular.module('bootstrapModal', [])
               if ( err ) cfg.deferred.reject(val);
               else cfg.deferred.resolve(val);};
 
-            var getOpts = $window.location.host.match(/^localhost/) ? {} :{cache: $templateCache};
             // Attach modal activation function
             modalService[name] = function(arg) {
               cfg.deferred = $q.defer();
 
               // Fetch modal html              
-              var pagePromise = $http.get(
-                cfg.tmplUrl, getOpts)
-                  .then(
-                    function(resp){
-                      // Create a new scope and instantiate new controller for each call
-                      cfg.scope = $rootScope.$new();
-                      cfg.content = $compile(resp.data)(cfg.scope);
-                      },
-                    function(){$window.alert('Loading modal template failed: '+cfg.tmplUrl);});
+              var pagePromise = $http.get(cfg.tmplUrl, getOpts)
+                .then(
+                  function(resp){
+                    // Create a new scope and instantiate new controller for each call
+                    cfg.scope = $rootScope.$new();
+                    cfg.content = $compile(resp.data)(cfg.scope);},
+                  function(){
+                    $window.alert('Loading modal template failed: '+cfg.tmplUrl);});
 
                 // Perform modal initialization with "open" function
                 var initPromise;
