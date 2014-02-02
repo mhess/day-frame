@@ -2,7 +2,7 @@
 
 var oneDayMs = 1000*60*60*24;
 
-angular.module('tasks', ['util'])
+angular.module('tasks', ['util', 'google'])
 
   // All operations in this service assume an $apply context
   .service('$tasks',
@@ -274,4 +274,31 @@ angular.module('tasks', ['util'])
             return r.items.filter(isNotAllDay).map(
               function(r){return deserialize(that, r);});});
       };};
+  }])
+
+  .service('$gCalManager', 
+    ['gCalStore', '$tasks',
+    function(gCalStore, $tasks){
+      var that = this;
+      this.current = {};
+
+      // Make it so that only the google calendars with the specified id's
+      // are being used by the $tasks service.
+      // Returns a boolean for whether or not anything changed.
+      this.update = function(calendarIds){
+        var changeFlag = false;
+        var oldIds = angular.copy(this.current);
+        var id, newIds = {};
+        angular.forEach(calendarIds, function(id){
+          if ( id in oldIds ) delete oldIds[id];
+          else newIds[id] = id;});
+        angular.forEach(newIds, function(id){
+          changeFlag = true;
+          that.current[id] = id;
+          $tasks.addStore(new gCalStore(id));});
+        angular.forEach(oldIds, function(id){
+          changeFlag = true;
+          delete that.current[id];
+          $tasks.removeStore(id);});
+        return changeFlag;};
   }]);

@@ -12,7 +12,7 @@
 
 var oneDay = 1000*60*60*24;
 
-var app = angular.module("app", 
+angular.module("app", 
   ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies', 'google'])
 
   .controller('viewCtrl', 
@@ -359,8 +359,8 @@ var app = angular.module("app",
   }])
 
   .controller('accountModalCtrl',
-    ['$scope', '$auth', '$close', '$tasks', 'gCalStore', 'Time',
-      function($scope, $auth, $close, $tasks, gCalStore, Time){
+    ['$scope', '$auth', '$close', '$tasks', '$gCalManager', 'Time',
+      function($scope, $auth, $close, $tasks, $gCalManager, Time){
         $scope.invalid = false;
         $scope.submitError = false;
 
@@ -389,15 +389,11 @@ var app = angular.module("app",
         });
 
         $scope.close = $close;
+
         $scope.update = function(){
           $auth.update(u).then(
             function(){
-              var change = false;
-              angular.forEach(u.gcals, function(c){
-                if ( !$tasks.stores[c.id] ) {
-                  $tasks.addStore(new gCalStore(c.id));
-                  change = true;}});
-              if ( change ) $tasks.changeDay();
+              $gCalManager.update(u.gcals) && $tasks.changeDay();
               $close();}, 
             function(errors){
               $scope.submitError = true;
@@ -493,18 +489,15 @@ var app = angular.module("app",
   .controller('googleCalSelectCtrl', 
     ['$scope', '$gclient',
     function($scope, $gclient){
-      var cals;
       $scope.state = 1;
 
       $scope.$on('userReady', function(){
-        cals = $scope.cals = angular.copy($scope.user.gcals);
-        if ( cals.empty ) $scope.state = 0;
+        if ( !$scope.user.gcals ) $scope.state = 0;
         else $scope.init();});
 
       $scope.init = function(){
-        if ( $scope.user.gcals.empty ) {
-          delete cals.empty;
-          delete $scope.user.gcals.empty;}
+        var cals = $scope.cals = {};
+        if ( $scope.state === 0 ) $scope.user.gcals = {};
         $scope.state = 1;
         $gclient.load('calendar', 'v3')
           .then(
@@ -512,13 +505,14 @@ var app = angular.module("app",
             function(){$scope.state = 0;})
           .then(function(resp){
             angular.forEach(resp.items, function(c){
-              if ( !cals[c.id] ) cals[c.id] = c;});
+              cals[c.id] = c;
+              if ( c.id in $scope.user.gcals) c.sel = true;});
             $scope.state = 2;});};
 
       $scope.toggle = function(c){
         if ( c.sel ) delete $scope.user.gcals[c.id];
-        else $scope.user.gcals[c.id] = c;
-        c.sel = !c.sel;}
+        else $scope.user.gcals[c.id] = c.id;
+        c.sel = !c.sel;};
   }])
 
   .constant('modalCfgs', {
@@ -597,7 +591,6 @@ var app = angular.module("app",
       var userInfo = $cookieStore.get('user_info');
       if ( userInfo ) {
         $auth.user = userInfo;
-        userInfo.gcals = {empty: 1};
         $tasks.addStore(remoteStore, true);}
       else $tasks.addStore(localStore, true);
       $tasks.changeDay();
