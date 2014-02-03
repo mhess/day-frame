@@ -1,0 +1,29 @@
+<div class="modal-content signup-modal">
+  <div class="modal-header"><h3 class="modal-title">Log in</h3></div>
+  <form name="form">
+    <div class="modal-body">
+
+        <div class="form-group email" ng-class="{'has-error': errors.email}">
+          <label class="control-label">Email:</label>
+          <div class="feedback">
+            <input autofill class="form-control" type="text" name="email" ng-model="fields.email">
+            <div class="help-block">{{errors.email}} </div>
+          </div>
+        </div>
+
+        <div class="form-group passwd" ng-class="{'has-error': errors.passwd}">
+          <label class="control-label">Password:</label>
+          <div class="feedback">
+            <input autofill class="form-control" type="password" name="passwd" ng-model="fields.passwd">
+            <div class="help-block">{{errors.passwd}}</div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+      <span ng-show="submitError" class="submit-error">Bad email or password.</span>
+      <button class="btn btn-default" ng-click="close()">Cancel</button>
+      <button class="btn btn-primary" ng-disabled="invalid" ng-click="logIn()">Log in</button>
+    </div>
+  </form>
+</div>
