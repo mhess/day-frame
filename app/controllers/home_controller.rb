@@ -7,7 +7,8 @@ class HomeController < ApplicationController
         clientId: ENV['GOOGLE_CLIENT_ID']
       }.to_json}
     if user_signed_in?
-      cookies["user_info"] = {value: current_user.slice(:name, :wake, :sleep).to_json}
+      cookies["user_info"] = {value: 
+        current_user.slice(:name, :wake, :sleep, :gcals).to_json}
     end
   end
 

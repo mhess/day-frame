@@ -13,11 +13,12 @@
 var oneDay = 1000*60*60*24;
 
 angular.module("app", 
-  ['tasks', 'util', 'bootstrapModal', 'auth', 'ngCookies', 'google'])
+  ['tasks', 'util', 'bootstrapModal', 'auth', 'google', 'ngCookies'])
 
   .controller('viewCtrl', 
     ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$rootScope', '$window',
       function($scope, $tasks, hoursArray, Time, $modals, $auth, $rootScope, $window) {
+        var timeline = $tasks.timeline;
         $scope.modals = $modals;
         $scope.auth = $auth;
         $scope.tasks = $tasks;
@@ -26,12 +27,9 @@ angular.module("app",
 
         function initWakeSleep(){
           var u = $auth.user;
-          $rootScope.wake = u ? new Time(u.wake) : new Time(420);
-          $rootScope.sleep = u ? new Time(u.sleep) : new Time(1380);}
+          $rootScope.wake = u ? u.wake : new Time(420);
+          $rootScope.sleep = u ? u.sleep : new Time(1380);}
 
-        // Day watcher //
-
-        var timeline = $tasks.timeline;                             
         $scope.$watch('tasks.date',
           function(newDay, oldDay) {
            // Update dayText
@@ -366,8 +364,8 @@ angular.module("app",
 
         var u = $scope.user = angular.copy($auth.user);
         $scope.$broadcast('userReady');
-        u.wake = new Time($auth.user.wake);
-        u.sleep = new Time($auth.user.sleep);
+        u.wake = $auth.user.wake;
+        u.sleep = $auth.user.sleep;
 
         var errs = $scope.errors = {name:null, email:null, 
           passwd:null, passwdCnf:null};
@@ -586,15 +584,9 @@ angular.module("app",
 
   .run(['$cookieStore', '$auth', '$tasks', '$rootScope', 'localStore', 'remoteStore', '$gclient',
     function($cookieStore, $auth, $tasks, $rootScope, localStore, remoteStore, $gclient) {
-
-      // Grab user info from cookie if logged in.
-      var userInfo = $cookieStore.get('user_info');
-      if ( userInfo ) {
-        $auth.user = userInfo;
-        $tasks.addStore(remoteStore, true);}
-      else $tasks.addStore(localStore, true);
+      $auth.init($cookieStore.get('user_info'));
       $tasks.changeDay();
-      $rootScope.welcome = !userInfo;
+      $rootScope.welcome = !$auth.user;
 
       // Google API clientId and apiKey
       $gclient.init($cookieStore.get('google_api_config'));
@@ -606,5 +598,4 @@ angular.module("app",
       // Attach logout function to rootScope.
       $rootScope.logOut = function(){
         $auth.logOut().then(function(){window.location.reload()});};
-
   }]);

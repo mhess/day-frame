@@ -4,9 +4,9 @@
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
   ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 
-   'remoteStore', 'Time', 
+   'remoteStore', 'localStore', 'Time', 
   function($http, $rootScope, $window, $modals, $tasks, $q, 
-    remoteStore, Time, $cookieStore) {
+    remoteStore, localStore, Time, $cookieStore) {
 
     var that = this;
 
@@ -15,14 +15,14 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         name: info.name,
         wake: new Time(info.wake),
         sleep: new Time(info.sleep),
-        gcals: info.gcals};}
+        gcals: JSON.parse(info.gcals)};}
 
     function serializeUserInfo(info){
       return {
         name: info.name,
         wake: info.wake.minutes,
         sleep: info.sleep.minutes,
-        gcals: info.gcals};}
+        gcals: JSON.stringify(info.gcals)};}
 
     //FIXME: This probably doesn't belong here.
     this.logInTransition = function(){
@@ -39,8 +39,8 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
             deferred.resolve();});
       return deferred.promise;}
 
-    this.logInPath = '/users/sign_in.json'; //config.signInPath;
-    this.registerPath = '/users.json'; //config.registerPath;
+    this.logInPath = '/users/sign_in.json';
+    this.registerPath = '/users.json';
     this.signOutPath = '/users/sign_out';
     this.forgotPath = '/users/password.json';
     this.user = null;
@@ -94,7 +94,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
       return $http.put(this.registerPath, postData)
         .then(
           function(resp){
-            angular.extend(that.user, resp.data);
+            angular.extend(that.user, deserializeUserInfo(resp.data));
             return resp.data;},
           function(resp){
             return $q.reject(resp.data.errors);});};

@@ -32,7 +32,7 @@ class RegistrationsController < Devise::RegistrationsController
   def update
     res = current_user
     if res.update(account_update_params)
-      render json: res.slice('name', 'sleep', 'wake')
+      render json: res.slice('name', 'sleep', 'wake', 'gcals')
     else
       respond_with res
     end
@@ -45,7 +45,7 @@ class RegistrationsController < Devise::RegistrationsController
       p.permit(:name, :email, :password, :password_confirmation)  
     end
     devise_parameter_sanitizer.for(:account_update) do |p|
-      p.permit(:name, :wake, :sleep)
+      p.permit(:name, :wake, :sleep, :gcals)
     end
   end
 

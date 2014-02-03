@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130924180805) do
+ActiveRecord::Schema.define(version: 20140203000850) do
 
   create_table "tasks", force: true do |t|
     t.integer  "user_id"
@@ -43,6 +43,7 @@ ActiveRecord::Schema.define(version: 20130924180805) do
     t.datetime "updated_at"
     t.integer  "wake",                   default: 420
     t.integer  "sleep",                  default: 1380
+    t.string   "gcals"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
