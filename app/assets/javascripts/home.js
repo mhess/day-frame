@@ -97,40 +97,42 @@ angular.module("app",
           var snapTolerance = 60;
           var timeDroppable = $('.time-droppable');
           var task = scope.task;
+          var style = scope.style = {};
 
           scope.start = task.start ? new Time(task.start.minutes) : null;
-          scope.duration = new Minutes(task.duration.min);
-          scope.style = {};
           scope.drag = false;
           scope.resize = false;
           
           scope.range = function() {
             if ( !scope.start ) return '';
             var begin = scope.start,
-                end = scope.start.add(scope.duration);
+                end = scope.start.add(task.duration);
             return begin+' - '+end;};
 
           function setHeight(h){
-            var style = scope.style;
             if ( h ) {
               style.height = h;
               if ( style.height < ( 8+14 ) ) style.fontSize = style.height-8;
+              else style.fontSize = null;
             } else style.height = style.fontSize = null;};
 
           scope.$watch('drag', function(d){
             if ( !task.start ) {              
               if ( d ) setHeight(task.duration.pixels());
               else setHeight(null);}});
-
+          
           scope.$watch('task.duration', 
             function(d){
+              scope.durStr = d.toString();
               if (task.start) setHeight(d.pixels());},
             true);
 
           scope.$watch('task.start', 
             function(s){
-              if ( s ) scope.style.top = task.start.toOffset(scope.wake);}, 
+              if ( s ) style.top = task.start.toOffset(scope.wake);}, 
             true);
+
+          scope.$watch('task.offset', function(o){style.left = o * 10;});
           
           scope.getClass = function (){
             var val = 'pri-'+task.priority,
@@ -145,19 +147,18 @@ angular.module("app",
           
           // Set CSS/draggable based on whether assigned or not
           if (task.start!==null) {
-            el.draggable({containment:'.time-droppable'});
-            el.resizable({handles: 's', grid: [0, 5],
-              containment:'parent',
+            el.draggable({containment: ".time-droppable"});
+            el.resizable({handles: 's',
+              containment: ".timeline",
               resize: function(e,ui){
-                scope.$apply(function(d){
-                  scope.duration.fromPx(closest(5, ui.size.height));});},
+                scope.$apply(function(){
+                  task.duration.fromPx(closest(5, ui.size.height));});},
               start: function(){scope.resize=true;},
               stop: function(e,ui){
                 setTimeout(function(){
                 scope.$apply(
                   function(){
                     scope.resize=false;
-                    task.duration.fromPx(closest(5, ui.size.height));
                     task.update();});});}});
           } else {
             el.draggable(

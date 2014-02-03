@@ -29,6 +29,26 @@ angular.module('tasks', ['util', 'google'])
        function mutateDate(self, other) {
          self.setTime(other.getTime());
          return self;}
+
+       function setOffsets(timeline){
+         var i, start, end, soFar, count=0;;
+         var slots = [];
+         angular.forEach(timeline, function(t){
+           start = t.start;
+           end = t.start.add(t.duration);
+           soFar=0; count++;
+           for ( i=0; soFar < count; i++ ) {
+             if ( slots[i] ) {
+               if ( !(slots[i].gt(start)) ) {
+                 count--; 
+                 slots[i] = null;
+               } else soFar++;}
+             if ( t && !slots[i] ) {
+               soFar++;
+               t.offset = i;
+               slots[i] = end;
+               t = null;}}
+       });}
        
        function Task(props){
          angular.copy(props, this);
@@ -43,12 +63,14 @@ angular.module('tasks', ['util', 'google'])
            var tindex = timeline.indexOf(task);
            tindex > -1 && timeline.splice(tindex, 1);
            backlog.indexOf(task) < 0 && backlog.push(task);
+           task.offset=0;
          } else {
            var bindex = backlog.indexOf(task);
            bindex > -1 && backlog.splice(bindex, 1);
            timeline.indexOf(task) < 0 && timeline.push(task);
          }
          timeline.sort(taskCmp);
+         setOffsets(timeline);
          task.store.update(task)
            .then(null,function(){alert("Task modification failed");});};
 
@@ -78,7 +100,9 @@ angular.module('tasks', ['util', 'google'])
                function(tasks){
                  angular.forEach(tasks,
                    function(taskProps){addTask(new Task(taskProps));})});
-             timeline.sort(taskCmp);});}
+             timeline.sort(taskCmp);
+             setOffsets(timeline);
+           });}
        
        this.get = function(tid){return taskMap[tid];};
 

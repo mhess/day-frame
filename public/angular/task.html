@@ -1,7 +1,7 @@
 <div class="task" ng-style="style" ng-class="getClass()">
   <div class="title" ng-bind="task.title"></div>
   <div class="time-info">
-    <span ng-bind="range()"></span> (<span ng-bind="duration"></span>)
+    <span ng-bind="range()"></span> (<span ng-bind="durStr"></span>)
   </div>
   <div class="control" ng-show="task.editable && (resize || !drag)">
     <span class="glyphicon glyphicon-resize-vertical ui-resizable-handle ui-resizable-s" title="Change duration" ng-show="task.start"></span>

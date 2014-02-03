@@ -11,6 +11,7 @@ $list-padding: 15px;
 $panel-width: 440px;
 $color-now: #DB4A47;
 $color-text-err: #A94442;
+$label-width: 60px;
 
 // Undo bootstrap styling //
 
@@ -39,11 +40,13 @@ a:hover { text-decoration: none; }
 
 .timeline {
   position: relative;
+  width: 1200px;
+  padding-bottom: 5px;
 }
 
 .time-label {
   float: left;
-  width: 60px;
+  width: $label-width;
   border-right: 1px solid gray;
   vertical-align: text-top;
 }

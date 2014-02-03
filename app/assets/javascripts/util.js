@@ -124,6 +124,7 @@ Minutes.prototype.withHrs = function()  {
 };
 Minutes.prototype.fromPx = function(pixels) {
   this.min = pixels / pixelFactor;
+  return this;
 };
 Minutes.prototype.fromMinutes= function(min){
   this.min = min.min; return this;
