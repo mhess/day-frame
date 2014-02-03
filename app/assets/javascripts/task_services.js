@@ -286,6 +286,7 @@ angular.module('tasks', ['util', 'google'])
       // are being used by the $tasks service.
       // Returns a boolean for whether or not anything changed.
       this.update = function(calendarIds){
+        if ( !calendarIds ) return;
         var changeFlag = false;
         var oldIds = angular.copy(this.current);
         var id, newIds = {};

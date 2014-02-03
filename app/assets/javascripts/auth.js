@@ -4,9 +4,9 @@
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
   ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 
-   'remoteStore', 'localStore', 'Time', 
+   'remoteStore', 'localStore', 'Time', '$gCalManager',
   function($http, $rootScope, $window, $modals, $tasks, $q, 
-    remoteStore, localStore, Time, $cookieStore) {
+    remoteStore, localStore, Time, $gCalManager) {
 
     var that = this;
 
@@ -15,14 +15,14 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         name: info.name,
         wake: new Time(info.wake),
         sleep: new Time(info.sleep),
-        gcals: JSON.parse(info.gcals)};}
+        gcals: info.gcals ? JSON.parse(info.gcals) : null};}
 
     function serializeUserInfo(info){
       return {
         name: info.name,
         wake: info.wake.minutes,
         sleep: info.sleep.minutes,
-        gcals: JSON.stringify(info.gcals)};}
+        gcals: info.gcals ? JSON.stringify(info.gcals): null};}
 
     //FIXME: This probably doesn't belong here.
     this.logInTransition = function(){
@@ -54,9 +54,9 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
     this.init = function(userInfo){
       if ( userInfo ) {
         this.user = deserializeUserInfo(userInfo);
-        $tasks.addStore(remoteStore, true);}
-      else $tasks.addStore(localStore, true);
-    };
+        $tasks.addStore(remoteStore, true);
+        $gCalManager.update(this.user.gcals);}
+      else $tasks.addStore(localStore, true);};
 
     this.logIn = function(fields) {
       fields.rem = fields.rem ? 1 : 0;
