@@ -27,6 +27,7 @@ a:hover { text-decoration: none; }
 
 .dayframe {
   padding: 20px;
+  min-height: 500px;
   position: relative;
   overflow: hidden;
 }
@@ -353,7 +354,10 @@ a:hover { text-decoration: none; }
 // Google Calendar Selection //
 
 .calendar-list { margin-left: 10px; }
-.cal-option { padding-right: 20px; }
+.cal-option {
+  text-align: left;
+  padding-right: 20px;
+}
 .checkmark { 
   opacity: 0;
   margin-right: 2px; 

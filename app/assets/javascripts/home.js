@@ -24,11 +24,23 @@ angular.module("app",
         $scope.tasks = $tasks;
         $scope.signInFields = {email: null, passwd: null};
         $scope.dayText = "That's";
+        $scope.$watch('auth.user', function(u){
+          $scope.displayName = u ? u.name.split(/ +/)[0] : 'Demo';}, 
+        true);
 
-        function initWakeSleep(){
-          var u = $auth.user;
-          $rootScope.wake = u ? u.wake : new Time(420);
-          $rootScope.sleep = u ? u.sleep : new Time(1380);}
+        $rootScope.wake = new Time(420);
+        $rootScope.sleep = new Time(1380);
+
+        function resetWakeSleep(){
+          var wake = $rootScope.wake,
+            sleep = $rootScope.sleep,
+            u = $auth.user;
+          if ( u ) {
+            wake.fromTime(u.wake);
+            sleep.fromTime(u.sleep);
+          } else {
+            wake.minutes = 420;
+            sleep.minutes = 1380;}}
 
         $scope.$watch('tasks.date',
           function(newDay, oldDay) {
@@ -39,13 +51,13 @@ angular.module("app",
             if ( delta ) {
               count = Math.abs(delta);
               prep = delta < 0 ? "before" : "after";
-              plural = count > 1 ? "s " : ' ';
+              var plural = count > 1 ? "s " : ' ';
               dayText = count+" "+" day"+plural+prep;
             }
             $scope.dayText = dayText;
 
             // Set wake/sleep based on assigned tasks for this day.
-            initWakeSleep();
+            resetWakeSleep();
             if ( !timeline.length ) return;
             var first = timeline[0].start;
             var last = timeline[timeline.length-1].start;
@@ -66,7 +78,7 @@ angular.module("app",
             nowMarker.hide();
           else nowMarker.show().css('top', now.toOffset($rootScope.wake));}
 
-        initWakeSleep();
+        resetWakeSleep();
         updateNowMarker()
         setInterval(updateNowMarker, 60000);
 
@@ -125,6 +137,11 @@ angular.module("app",
             function(d){
               scope.durStr = d.toString();
               if (task.start) setHeight(d.pixels());},
+            true);
+
+          scope.$watch('wake', 
+            function(w){
+              if ( task.start ) style.top = task.start.toOffset(w);},
             true);
 
           scope.$watch('task.start', 
@@ -217,19 +234,25 @@ angular.module("app",
     ['$tasks', function($tasks) {
        var timeline = $tasks.timeline;
        return {
-         scope: {time: '=hourSelect', which: '@hourSelect'},
+         scope: {time:'=hourSelect', which:'@hourSelect'},
          templateUrl: 'angular/hour_select.html',
          controller: ['$scope', function($scope) {
            $scope.up = function() {
-             var firstTask = timeline[0];
-             if ( $scope.which==='wake' && firstTask )
-               if ( $scope.time.diff(firstTask.start).min > -60 ) return;
+             if ( $scope.which==='wake' ) {
+               var firstTask = timeline[0];
+               if ( firstTask ) {
+                 if ( $scope.time.diff(firstTask.start).min > -60 ) return;
+               } else if ( $scope.$parent.sleep.diff($scope.time).min < 120 ) return;}
              $scope.time.addIn(60);};
            $scope.down = function(){
-             var lastTask = timeline[timeline.length-1];
-             if ( $scope.which==='sleep' && lastTask ) {                               
-               var endTime = lastTask.start.add(lastTask.duration);
-               if ( $scope.time.diff(endTime).min < 60 ) return;}
+             if ( $scope.which==='sleep') {
+               var lastTask = timeline[timeline.length-1];
+               if ( lastTask ) {
+                 var endTime = lastTask.start.add(lastTask.duration);
+                 if ( $scope.time.diff(endTime).min < 60 ) return;
+               } else if ( $scope.time.diff($scope.$parent.wake).min < 120 ) 
+                 return;
+             } else if ( $scope.time.minutes <= 0 ) return;
              $scope.time.addIn(-60);};}]};}])
 
   .controller('taskModalCtrl',
