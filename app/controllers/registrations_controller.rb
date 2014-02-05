@@ -2,8 +2,10 @@ class RegistrationsController < Devise::RegistrationsController
   view_paths = ['app/views/registrations']
   before_action :update_sanitized_params
   before_action :ajax_auth_user!, only: [:info, :update]
-
   respond_to :json
+  
+  @@user_info_attrs = ['name', 'sleep', 'wake', 'gcals']
+  
 
   def info
     render json: current_user
@@ -17,10 +19,10 @@ class RegistrationsController < Devise::RegistrationsController
       yield resource if block_given?
       if resource.active_for_authentication?
         sign_up(resource_name, resource)
-        render json: resource.attributes.slice('name', 'sleep', 'wake')
+        render json: resource.attributes.slice(*@@user_info_attrs)
       else
         expire_data_after_sign_in!
-        render json: resource.attributes.slice('name', 'sleep', 'wake')
+        render json: resource.attributes.slice(*@@user_info_attrs)
       end
     else
       clean_up_passwords resource
@@ -45,7 +47,8 @@ class RegistrationsController < Devise::RegistrationsController
       p.permit(:name, :email, :password, :password_confirmation)  
     end
     devise_parameter_sanitizer.for(:account_update) do |p|
-      p.permit(:name, :wake, :sleep, :gcals)
+      p.permit(*@@user_info_attrs)
+      #p.permit(:name, :wake, :sleep, :gcals)
     end
   end
 
