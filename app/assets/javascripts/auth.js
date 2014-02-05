@@ -3,26 +3,31 @@
 
 angular.module('auth', ['bootstrapModal', 'tasks'])
 .service('$auth',
-  ['$http', '$rootScope', '$window', '$modals', '$tasks', '$q', 
+  ['$http', '$rootScope', '$document', '$modals', '$tasks', '$q', 
    'remoteStore', 'localStore', 'Time', '$gCalManager',
-  function($http, $rootScope, $window, $modals, $tasks, $q, 
+  function($http, $rootScope, $document, $modals, $tasks, $q,
     remoteStore, localStore, Time, $gCalManager) {
 
     var that = this;
 
     function deserializeUserInfo(info){
+      var gcals = JSON.parse(info.gcals);
+      var dgcals = gcals ? {} : null;
+      if ( dgcals ) angular.forEach(gcals, function(v){dgcals[v]=v;});
       return {
         name: info.name,
         wake: new Time(info.wake),
         sleep: new Time(info.sleep),
-        gcals: info.gcals ? JSON.parse(info.gcals) : null};}
+        gcals: dgcals};}
 
     function serializeUserInfo(info){
+      var sgcals = info.gcals ? [] : null;
+      if ( sgcals ) angular.forEach(info.gcals, function(v){sgcals.push(v);});
       return {
         name: info.name,
         wake: info.wake.minutes,
         sleep: info.sleep.minutes,
-        gcals: info.gcals ? JSON.stringify(info.gcals): null};}
+        gcals: JSON.stringify(sgcals)};}
 
     //FIXME: This probably doesn't belong here.
     this.logInTransition = function(){

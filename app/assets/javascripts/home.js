@@ -16,24 +16,24 @@ angular.module("app",
   ['tasks', 'util', 'bootstrapModal', 'auth', 'google', 'ngCookies'])
 
   .controller('viewCtrl', 
-    ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$rootScope', '$window',
-      function($scope, $tasks, hoursArray, Time, $modals, $auth, $rootScope, $window) {
+    ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$window',
+      function($scope, $tasks, hoursArray, Time, $modals, $auth, $window) {
         var timeline = $tasks.timeline;
+
         $scope.modals = $modals;
         $scope.auth = $auth;
         $scope.tasks = $tasks;
-        $scope.signInFields = {email: null, passwd: null};
         $scope.dayText = "That's";
+        $scope.wake = new Time(420);
+        $scope.sleep = new Time(1380);
+
         $scope.$watch('auth.user', function(u){
           $scope.displayName = u ? u.name.split(/ +/)[0] : 'Demo';}, 
         true);
 
-        $rootScope.wake = new Time(420);
-        $rootScope.sleep = new Time(1380);
-
         function resetWakeSleep(){
-          var wake = $rootScope.wake,
-            sleep = $rootScope.sleep,
+          var wake = $scope.wake,
+            sleep = $scope.sleep,
             u = $auth.user;
           if ( u ) {
             wake.fromTime(u.wake);
@@ -61,10 +61,10 @@ angular.module("app",
             if ( !timeline.length ) return;
             var first = timeline[0].start;
             var last = timeline[timeline.length-1].start;
-            if ( first.lt($rootScope.wake) )
-              $rootScope.wake = first.floor();
-            if (last.gt($rootScope.sleep) )
-              $rootScope.sleep = last.ceil();
+            if ( first.lt($scope.wake) )
+              $scope.wake = first.floor();
+            if (last.gt($scope.sleep) )
+              $scope.sleep = last.ceil();
           }, true);
 
         // Logic to update now marker //
@@ -74,9 +74,9 @@ angular.module("app",
         var intvlId;
         function updateNowMarker(){
           now.fromDate(new Date());
-          if ( now.gt($rootScope.sleep) || now.lt($rootScope.wake) ) 
+          if ( now.gt($scope.sleep) || now.lt($scope.wake) ) 
             nowMarker.hide();
-          else nowMarker.show().css('top', now.toOffset($rootScope.wake));}
+          else nowMarker.show().css('top', now.toOffset($scope.wake));}
 
         resetWakeSleep();
         updateNowMarker()
@@ -86,7 +86,7 @@ angular.module("app",
 
         $scope.$watch('wake+""+sleep', function(v) {
           if ( !v ) return;
-          $scope.hours = hoursArray($rootScope.wake, $rootScope.sleep);
+          $scope.hours = hoursArray($scope.wake, $scope.sleep);
           updateNowMarker();
         });
                              
@@ -96,7 +96,6 @@ angular.module("app",
             task.delete();};
 
         $scope.unassign = function(task) {task.update({start: null});};
-
   }])
 
   .directive('task', ['$compile', 'closest', 'Time', 'Minutes',
@@ -528,7 +527,7 @@ angular.module("app",
           .then(function(resp){
             angular.forEach(resp.items, function(c){
               cals[c.id] = c;
-              if ( c.id in $scope.user.gcals) c.sel = true;});
+              if ( $scope.user.gcals[c.id] ) c.sel = true;});
             $scope.state = 2;});};
 
       $scope.toggle = function(c){
@@ -606,18 +605,20 @@ angular.module("app",
              return $q.reject(resp);}};}]);
   }])
 
-  .run(['$cookieStore', '$auth', '$tasks', '$rootScope', 'localStore', 'remoteStore', '$gclient',
-    function($cookieStore, $auth, $tasks, $rootScope, localStore, remoteStore, $gclient) {
-      $auth.init($cookieStore.get('user_info'));
-      $tasks.changeDay();
+  .run(['$auth', '$tasks', '$rootScope', '$gclient', '$document',
+    function($auth, $tasks, $rootScope, $gclient, $document) {
+      // Grab user info for auth initialization
+      var $userInfo = $document.find('#user-info');
+      $auth.init(JSON.parse($userInfo.text()));
       $rootScope.welcome = !$auth.user;
 
-      // Google API clientId and apiKey
-      $gclient.init($cookieStore.get('google_api_config'));
+      // Grab Google API clientId and apiKey
+      var $googleCfg = $document.find('#google-config');
+      $gclient.init(JSON.parse($googleCfg.text()));
 
-      // Delete unneeded cookies
-      ['user_info', 'goggle_api_config'].forEach(
-        function(i){$cookieStore.remove(i);});
+      $tasks.changeDay();
+
+      // $googleCfg.remove(); $userInfo.remove();
 
       // Attach logout function to rootScope.
       $rootScope.logOut = function(){
