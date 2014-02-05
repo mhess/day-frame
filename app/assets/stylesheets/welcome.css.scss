@@ -6,7 +6,7 @@
   background: rgba(238, 238, 238, 1);
   border-bottom: 1px solid black;
 
-  p,li { font-weight: bold; }
+  p,li { font-size: 14px; }
   h1 { margin-top: initial; }
   h2 { margin-bottom: 20px; }
 }
@@ -17,7 +17,15 @@
   a { margin: 0 3px; }
 }
 
-.features li { margin-bottom: 10px; }
+.features {
+  ul { 
+    list-style-position: inside;
+    padding-left: 15px;
+    font-weight: bold;
+  }
+
+  li { margin-bottom: 10px; }
+}
 
 .ror { color: #A94442; }
 
@@ -129,6 +137,11 @@ $color-inst-arrow: #676767;
 #inst-drag2 {
   left: 525px;
   top: 170px;
+}
+#inst-hours {
+  right: 500px;
+  width: 161px;
+  top: 243px;  
 }
 
 .instructions {
