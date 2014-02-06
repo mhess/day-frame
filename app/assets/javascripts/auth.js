@@ -36,7 +36,7 @@ angular.module('auth', ['bootstrapModal', 'tasks'])
         function(){
           $rootScope.$apply(function(){
             $tasks.removeStore('local');
-            $tasks.addStore(remoteStore).changeDay();
+            $tasks.addStore(remoteStore, true).changeDay();
             $rootScope.$broadcast('fixWidgetArea');
             $rootScope.welcome = false;});
             $rootScope.wake = that.user.wake;
