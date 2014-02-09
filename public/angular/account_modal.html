@@ -3,7 +3,7 @@
   <form name="form">
     <div class="modal-body">
 
-        <div class="form-group name" ng-class="errors.name && 'has-error'">
+        <div class="form-group name" ng-class="{'has-error':errors.name}">
           <label class="control-label">Name:</label>
           <div class="feedback">
             <input class="form-control" type="text" name="name" ng-model="user.name">
@@ -12,7 +12,7 @@
         </div>
 
         <div class="row">
-          <div class="form-group col-xs-6" ng-class="errors.wake && 'has-error'">
+          <div class="form-group col-xs-4" ng-class="{'has-error':errors.wake}">
             <label class="control-label">Wake Time:</label>
             <div class="feedback">
               <input class="form-control" type="time" ng-model="user.wake" step="3600" time-input>
@@ -20,11 +20,18 @@
             </div>
           </div>
 
-          <div class="form-group col-xs-6" ng-class="errors.sleep && 'has-error'">
+          <div class="form-group col-xs-4" ng-class="{'has-error':errors.duration}">
+            <label class="control-label">Day Length (hrs):</label>
+            <div class="feedback">
+              <input class="form-control" type="number" ng-model="user.duration" min="1" step="1" hour-input>
+              <div class="help-block">{{errors.duration}}</div>
+            </div>
+          </div>
+
+          <div class="form-group col-xs-4">
             <label class="control-label">Sleep Time:</label>
             <div class="feedback">
-              <input class="form-control" type="time" ng-model="user.sleep" step="3600" time-input>
-              <div class="help-block">{{errors.sleep}}</div>
+              <div class="sleep-display">{{sleepDisplay}}</div>
             </div>
           </div>
         </div>
@@ -33,6 +40,7 @@
           
           <div ng-switch-when="0">
             <a href="javascript:;" ng-click="init()">Import Google Calendars</a>
+            <span class="cal-help">(Make sure you allow pop-ups for this site!)</span>
           </div>
           
           <div ng-switch-when="1">Loading Google Calendars...</div>

@@ -389,25 +389,30 @@ angular.module("app",
         $scope.$broadcast('userReady');
         u.wake = $auth.user.wake;
         u.sleep = $auth.user.sleep;
+        u.duration = u.sleep.diff(u.wake);
 
-        var errs = $scope.errors = {name:null, email:null, 
-          passwd:null, passwdCnf:null};
+        var errs = $scope.errors = {name:null, wake:null, duration:null};
 
-        $scope.$watchCollection('user', function(u){
-          if ( !u.name )
-            errs.name = "Name is required!";
+        $scope.$watch('user', function(u){
+          if ( !u.name ) errs.name = "Name is required!";
           else errs.name = null;
 
           if ( !u.wake ) errs.wake = "Wake time is invalid!";
           else errs.wake = null;
 
-          if ( !u.sleep ) errs.sleep = "Sleep time is invalid!";
-          else errs.sleep = null;          
+          if ( !u.duration || !u.duration.min ) 
+            errs.duration = "Duration is invalid!";
+          else errs.duration = null;
+
+          if ( u.wake && u.duration && u.duration.min ) {
+            u.sleep.minutes = u.wake.minutes+u.duration.min;
+            $scope.sleepDisplay = u.sleep.toString();
+          } else $scope.sleepDisplay = "?";
 
           for ( var k in errs ){
             if ( errs[k] ){$scope.invalid = true; return;}}
           $scope.invalid = false;
-        });
+        }, true);
 
         $scope.close = $close;
 
@@ -452,7 +457,7 @@ angular.module("app",
       }])
 
   .directive('timeInput', 
-    function(){
+    ['Time', function(Time){
       return {
         restrict: 'A',
         require: 'ngModel',
@@ -463,7 +468,26 @@ angular.module("app",
               return i ? ( mv ? mv.fromForm(i) : new Time(i) ) : null;});
           ctrl.$formatters.push(
             function(i){return i ? i.toForm() : null;});}};
-  })
+  }])
+
+  .directive('hourInput', 
+    ['Minutes', function(Minutes){
+      return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(s, e, a, ctrl){
+          ctrl.$parsers.push(
+            function(i){
+              var mv = ctrl.$modelValue;
+              if ( i < 0 || i===undefined ) return null;
+              if ( mv ) {
+                mv.min = i*60;}
+              else {
+                mv = new Minutes(i*60);}
+              return mv;});
+          ctrl.$formatters.push(
+            function(i){return i ? (i.min/60) : null;});}};
+  }])
 
   .directive("autofill", 
     ['$timeout', '$interval', 

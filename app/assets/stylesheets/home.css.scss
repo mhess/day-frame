@@ -189,7 +189,7 @@ a:hover { text-decoration: none; }
   width: $task-width;
   @include box-sizing(border-box);
   @include single-box-shadow($inset: true);
-  border-radius: 5px;
+  @include border-radius(5px);
   z-index: 0;
   
   .timeline & {
@@ -316,6 +316,7 @@ a:hover { text-decoration: none; }
   }
 }
 
+.sleep-display { padding-top: 6px; }
 
 // Wake Sleep Widget //
 
@@ -357,6 +358,10 @@ a:hover { text-decoration: none; }
 .cal-option {
   text-align: left;
   padding-right: 20px;
+}
+.cal-help {
+  font-size: 12px;
+  margin-left: 15px;
 }
 .checkmark { 
   opacity: 0;
