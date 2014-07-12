@@ -12,10 +12,10 @@
 
 var oneDay = 1000*60*60*24;
 
-angular.module("app", 
+angular.module("app",
   ['tasks', 'util', 'bootstrapModal', 'auth', 'google', 'ngCookies'])
 
-  .controller('viewCtrl', 
+  .controller('viewCtrl',
     ['$scope', '$tasks', 'hoursArray', 'Time', '$modals', '$auth', '$window',
       function($scope, $tasks, hoursArray, Time, $modals, $auth, $window) {
         var timeline = $tasks.timeline;
@@ -43,7 +43,7 @@ angular.module("app",
             sleep.minutes = 1380;}}
 
         $scope.$watch('tasks.date',
-          function(newDay, oldDay) {
+          function(newDay) {
            // Update dayText
             var delta = Math.round((newDay.getTime()-(new Date()).getTime())/oneDay);
             var dayText = "That's";
@@ -67,27 +67,14 @@ angular.module("app",
               $scope.sleep = last.ceil();
           }, true);
 
-        // Logic to update now marker //
-
-        var now = new Time(new Date);
-        var nowMarker = $('#now-marker');
-        var intvlId;
-        function updateNowMarker(){
-          now.fromDate(new Date());
-          if ( now.gt($scope.sleep) || now.lt($scope.wake) ) 
-            nowMarker.hide();
-          else nowMarker.show().css('top', now.toOffset($scope.wake));}
-
         resetWakeSleep();
-        updateNowMarker()
-        setInterval(updateNowMarker, 60000);
 
         // Wake/sleep watcher //
 
         $scope.$watch('wake+""+sleep', function(v) {
           if ( !v ) return;
           $scope.hours = hoursArray($scope.wake, $scope.sleep);
-          updateNowMarker();
+          //updateNowMarker();
         });
                              
         // Task maniplulation functions //
@@ -97,6 +84,30 @@ angular.module("app",
 
         $scope.unassign = function(task) {task.update({start: null});};
   }])
+
+  .directive('nowMarker', ['$interval', 'Time',
+    function($interval, Time){
+      return {
+        restrict: 'C',
+        link: function($scope, $el){
+
+          var now = new Time(new Date());
+
+          function update(){
+            now.fromDate(new Date());
+            if ( now.gt($scope.sleep) || now.lt($scope.wake) )
+              $el.hide();
+            else $el.show().css('top', now.toOffset($scope.wake));
+          }
+
+          $interval(update, 60000);
+
+          $scope.$watch('wake.minutes', update);
+          $scope.$watch('sleep.minutes', update);
+        }
+      };
+    }
+  ])
 
   .directive('task', ['$compile', 'closest', 'Time', 'Minutes',
     function($compile, closest, Time, Minutes) {
@@ -489,8 +500,8 @@ angular.module("app",
             function(i){return i ? (i.min/60) : null;});}};
   }])
 
-  .directive("autofill", 
-    ['$timeout', '$interval', 
+  .directive("autofill",
+    ['$timeout', '$interval',
     function ($timeout, $interval) {
       return {
         require: "ngModel",
@@ -498,7 +509,8 @@ angular.module("app",
           var v;
           function fill(){
             v = el.val();
-            v && ctrl.$setViewValue(v);}
+            if ( v ) ctrl.$setViewValue(v);
+          }
           $timeout(fill, 200);
           var p = $interval(fill, 1000);
           el.on('$destroy', function(){$interval.cancel(p);});}};
@@ -520,15 +532,19 @@ angular.module("app",
               offFun();});}}};
   }])
 
-  .directive('instruction', ['affixTop',
-    function(affixTop){ return {
+  .directive('instruction', ['affixTop', function(affixTop){
+    return {
       restrict: 'C',
       link: function($scope, $el){
         var fixedClass = "fixed";
         if ( !$scope.welcome ) $el.addClass(fixedClass);
         else {
-          var offFun = affixTop($el, fixedClass, true);
-          $scope.$on('fixWidgetArea', function(){offFun();});}}};
+          $scope.$on('fixWidgetArea',
+            affixTop($el, fixedClass, true)
+          );
+        }
+      }
+    };
   }])
 
   .controller('googleCalSelectCtrl', 

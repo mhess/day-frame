@@ -2,28 +2,32 @@
 var pixelFactor;
 function setPixelFactor(factor){
   pixelFactor = factor;
-};
+}
 
-var docEl = document.documentElement;
-var $doc = $(document);
+var $window = $(window);
+var affixEventName = 'scroll.myAffixTop';
 
 function affixTop($el, className, rel){
   relEl = rel ? $el.parent() : $el;
   var fixed = false,
-    top = relEl.offset().top;
-  if ( top < docEl.scrollTop ) {
+      top = relEl.offset().top;
+  if ( top < $window.scrollTop() ) {
     fixed = true;
-    $el.addClass(className);}
-  $doc.on('scroll.myAffixTop',
-    function(){
-      if ( fixed ) {
-        if ( docEl.scrollTop < top ){
-          fixed = false;
-          $el.removeClass(className);}
-        } else if ( docEl.scrollTop >= top ){
-          fixed = true;
-          $el.addClass(className);}});
-  return function(){$doc.off('scroll.myAffixTop')}}
+    $el.addClass(className);
+  }
+  $window.on(affixEventName, function(){
+    if ( fixed ) {
+      if ( $window.scrollTop() < top ) {
+        fixed = false;
+        $el.removeClass(className);
+      }
+    } else if ( top < $window.scrollTop() ) {
+      fixed = true;
+      $el.addClass(className);
+    }
+  });
+  return function(){$window.off(affixEventName);};
+}
 
 // Time constructor
 function Time(init, wake){
