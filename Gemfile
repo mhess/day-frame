@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 ruby '2.0.0'
 
 gem 'rails', '4.0.0'
-gem 'devise'
+gem 'devise', '~> 3.2.3'
 gem 'angularjs-rails'
 gem 'pg'
 gem 'jquery-rails'

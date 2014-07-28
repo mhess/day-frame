@@ -16,11 +16,11 @@ DayFrame::Application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   config.action_mailer.smtp_settings = {
-    address: ENV['MAIL_HOST'],
+    address: ENV['MAIL_HOST'] || 'baz.com',
     port: 587,
     authentication: :plain,
-    user_name: ENV['MAIL_USER'],
-    password: ENV['MAIL_PASSWD']
+    user_name: ENV['MAIL_USER'] || 'foo',
+    password: ENV['MAIL_PASSWD'] || 'baz'
   }
 
   config.action_mailer.default_url_options = { host: 'localhost:3000' }
